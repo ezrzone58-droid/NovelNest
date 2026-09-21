@@ -16,14 +16,20 @@ def muat_data():
         try:
             with open(FILE_DATABASE, "r", encoding="utf-8") as f:
                 data = json.load(f)
+
                 return {
                     "tema": data.get("tema", "biru"),
                     "daftar_novel": data.get("daftar_novel", []),
                     "antrian_registrasi": data.get("antrian_registrasi", []),
-                    "users_terdaftar": data.get("users_terdaftar", {"admin": "admin"})
+                    "users_terdaftar": data.get(
+                        "users_terdaftar",
+                        {"admin": "admin"}
+                    )
                 }
+
         except Exception as e:
             st.error(f"Gagal memuat data: {e}")
+
     return {
         "tema": "biru",
         "daftar_novel": [],
@@ -35,6 +41,7 @@ def simpan_data(data):
     try:
         with open(FILE_DATABASE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
+
     except Exception as e:
         st.error(f"Gagal menyimpan data: {e}")
 
@@ -62,9 +69,6 @@ if "admin_step" not in st.session_state:
 if "show_theme_selector" not in st.session_state:
     st.session_state.show_theme_selector = False
 
-if "sidebar_open" not in st.session_state:
-    st.session_state.sidebar_open = True
-
 db = st.session_state.db
 
 tema = db.get("tema", "biru")
@@ -76,6 +80,7 @@ if tema == "merah":
     accent_btn = "#dc2626"
     box_bg = "#27272a"
     muted_color = "#d1d5db"
+
 elif tema == "hijau":
     bg_sidebar = "#064e3b"
     bg_utama = "#f0fdf4"
@@ -83,6 +88,7 @@ elif tema == "hijau":
     accent_btn = "#059669"
     box_bg = "#d1fae5"
     muted_color = "#065f46"
+
 elif tema == "ungu":
     bg_sidebar = "#3b0764"
     bg_utama = "#faf5ff"
@@ -90,6 +96,7 @@ elif tema == "ungu":
     accent_btn = "#7c3aed"
     box_bg = "#f3e8ff"
     muted_color = "#581c87"
+
 else:
     bg_sidebar = "#0f172a"
     bg_utama = "#f4f6f8"
@@ -98,31 +105,59 @@ else:
     box_bg = "#e2e8f0"
     muted_color = "#334155"
 
-# Logika CSS untuk menyembunyikan sidebar secara dinamis berdasarkan state
-sidebar_display_css = "" if st.session_state.sidebar_open else '[data-testid="stSidebar"] { display: none !important; }'
-
 st.markdown(
     f"""
     <style>
+
     .stApp {{
         background-color: {bg_utama};
         color: {fg_teks};
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
-    {sidebar_display_css}
+
     [data-testid="stSidebar"] {{
         background-color: {bg_sidebar};
-        padding-top: 15px !important;
+        padding-top: 0px !important;
     }}
-    /* Sembunyikan semua tombol panah/bawaan Streamlit agar tidak konflik */
-    [data-testid="collapsedControl"],
+
+    [data-testid="stSidebar"]::before {{
+        content: "";
+        display: block;
+        height: 45px;
+        background-color: {bg_sidebar};
+        width: 100%;
+        position: relative;
+        z-index: 999;
+    }}
+
+    [data-testid="stSidebarCollapseButton"] .material-icons,
+    [data-testid="stSidebarCollapseButton"] .material-symbols-rounded,
+    [data-testid="stSidebarCollapseButton"] .material-symbols-outlined,
+    [data-testid="stSidebarCollapseButton"] .material-symbols-sharp {{
+        font-size: 0 !important;
+        line-height: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        visibility: hidden !important;
+    }}
+
+    [data-testid="stSidebarCollapseButton"] span {{
+        font-size: 0 !important;
+        line-height: 0 !important;
+        overflow: hidden !important;
+    }}
+
     [data-testid="stSidebarCollapseButton"] {{
-        display: none !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
     }}
+
     [data-testid="stSidebar"] * {{
         color: #ffffff !important;
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
+
     div.stButton > button {{
         background-color: {accent_btn};
         color: white;
@@ -132,9 +167,11 @@ st.markdown(
         font-weight: 600;
         width: 100%;
     }}
+
     div.stButton > button:hover {{
         opacity: 0.9;
     }}
+
     input,
     textarea {{
         background-color: {box_bg} !important;
@@ -142,28 +179,27 @@ st.markdown(
         border-radius: 6px !important;
         border: 1px solid rgba(0,0,0,0.2) !important;
     }}
+
     p,
     span,
     label {{
         color: {fg_teks} !important;
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
+
     div[data-baseweb="select"] > div {{
         background-color: {box_bg} !important;
         color: {fg_teks} !important;
     }}
+
     button[data-baseweb="tab"] {{
         color: {fg_teks} !important;
     }}
+
     </style>
     """,
     unsafe_allow_html=True
 )
-
-# Tombol Menu di halaman utama
-if st.button("Menu"):
-    st.session_state.sidebar_open = not st.session_state.sidebar_open
-    st.rerun()
 
 st.sidebar.markdown(
     """
@@ -195,43 +231,40 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-daftar_menu = ["Beranda", "Masuk (Login)", "Registrasi Akun", "Koleksi Novel"] + (["Admin Dashboard"] if st.session_state.is_admin else [])
-
-pilihan_menu = st.sidebar.radio(
+navigasi = st.sidebar.radio(
     "Navigasi",
-    daftar_menu,
+    [
+        "Beranda",
+        "Masuk (Login)",
+        "Registrasi Akun",
+        "Koleksi Novel"
+    ]
+    + (["Admin Dashboard"] if st.session_state.is_admin else []),
     label_visibility="collapsed"
 )
-
-if pilihan_menu == "Beranda":
-    st.session_state.menu = "Beranda"
-elif pilihan_menu == "Masuk (Login)":
-    st.session_state.menu = "Login"
-elif pilihan_menu == "Registrasi Akun":
-    st.session_state.menu = "Registrasi"
-elif pilihan_menu == "Koleksi Novel":
-    st.session_state.menu = "Koleksi"
-elif pilihan_menu == "Admin Dashboard":
-    st.session_state.menu = "AdminDashboard"
 
 st.sidebar.markdown("---")
 
 if st.sidebar.button("⚙️ Setting Aplikasi"):
-    st.session_state.show_theme_selector = not st.session_state.show_theme_selector
+    st.session_state.show_theme_selector = (
+        not st.session_state.show_theme_selector
+    )
 
 if st.session_state.show_theme_selector:
     st.sidebar.markdown("### Pengaturan Tema")
+
     pilihan_tema = st.sidebar.selectbox(
         "Pilih Tema Warna",
         ["biru", "merah", "hijau", "ungu"],
         index=["biru", "merah", "hijau", "ungu"].index(tema)
     )
+
     if pilihan_tema != tema:
         db["tema"] = pilihan_tema
         simpan_data(db)
         st.rerun()
 
-if st.session_state.menu == "Beranda":
+if navigasi == "Beranda":
     st.markdown(
         """
         <h1 style="
@@ -264,7 +297,7 @@ if st.session_state.menu == "Beranda":
         unsafe_allow_html=True
     )
 
-elif st.session_state.menu == "Login":
+elif navigasi == "Masuk (Login)":
     st.title("User Login")
 
     if st.session_state.admin_step == 1:
@@ -307,7 +340,7 @@ elif st.session_state.menu == "Login":
 
                     st.success(
                         "Verifikasi sukses! "
-                        "Silakan pilih menu Admin Dashboard."
+                        "Silakan pilih menu Admin Dashboard di sidebar."
                     )
 
                     st.rerun()
@@ -348,7 +381,7 @@ elif st.session_state.menu == "Login":
                             "Username atau Password salah."
                         )
 
-elif st.session_state.menu == "AdminDashboard":
+elif navigasi == "Admin Dashboard":
     if not st.session_state.is_admin:
         st.error(
             "Akses ditolak! Halaman ini bersifat rahasia."
@@ -575,7 +608,7 @@ elif st.session_state.menu == "AdminDashboard":
                         f"| Password: **{pwd}**"
                     )
 
-elif st.session_state.menu == "Koleksi":
+elif navigasi == "Koleksi Novel":
     if not st.session_state.logged_in_user:
         st.warning(
             "Anda harus masuk (login) terlebih dahulu "
@@ -771,7 +804,7 @@ elif st.session_state.menu == "Koleksi":
                             unsafe_allow_html=True
                         )
 
-elif st.session_state.menu == "Registrasi":
+elif navigasi == "Registrasi Akun":
     st.title("User Registration")
 
     t_reg1, t_reg2 = st.tabs(
