@@ -639,9 +639,12 @@ elif navigasi == "Admin Dashboard":
                             )
 
         with tab_c:
-            st.subheader(
-                "Antrean Registrasi Pengajuan User"
-            )
+            col_head_a, col_head_b = st.columns([3, 1])
+            col_head_a.subheader("Antrean Registrasi Pengajuan User")
+            if col_head_b.button("🔄 Muat Ulang", key="btn_restart_admin"):
+                st.session_state.db = muat_data()
+                st.success("Data diperbarui!")
+                st.rerun()
 
             if not db["antrian_registrasi"]:
                 st.info(
@@ -1020,6 +1023,13 @@ elif navigasi == "Registrasi Akun":
                         )
 
     with t_reg2:
+        col_r1, col_r2 = st.columns([3, 1])
+        col_r1.write("Masukkan ID sementara dan klik **Muat Ulang** jika ingin mengecek kode verifikasi dari admin.")
+        if col_r2.button("🔄 Muat Ulang", key="btn_restart_user"):
+            st.session_state.db = muat_data()
+            st.success("Status diperbarui!")
+            st.rerun()
+
         with st.form("form_aktivasi_akun"):
             inp_id = st.text_input(
                 "ID Sementara Anda:"
