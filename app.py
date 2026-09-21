@@ -96,8 +96,11 @@ else:
 
 st.markdown(f"""
     <style>
-    section[data-testid="stSidebar"] div.stButton button svg {{
+    section[data-testid="stSidebar"] [data-testid="stSidebarNav"] {{
         display: none !important;
+    }}
+    section[data-testid="stSidebar"] button div p {{
+        font-size: 15px !important;
     }}
     .stApp {{
         background-color: {bg_utama};
@@ -348,9 +351,6 @@ elif st.session_state.menu == "AdminDashboard":
             else:
                 for usr, pwd in active_users.items():
                     st.write(f"- Username: **{usr}** | Password: **{pwd}**")
-
-elif navigasi == "Koleksi":
-    pass
 
 elif st.session_state.menu == "Koleksi":
     if not st.session_state.logged_in_user:
