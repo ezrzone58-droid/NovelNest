@@ -64,7 +64,7 @@ if "show_theme_selector" not in st.session_state:
 
 db = st.session_state.db
 
-# ==================== Kustomisasi Tema & CSS ====================
+# ==================== Kustomisasi Tema & CSS (Kontras Tinggi) ====================
 tema = db.get("tema", "biru")
 if tema == "merah":
     bg_sidebar = "#18181b"
@@ -72,28 +72,28 @@ if tema == "merah":
     fg_teks = "#f3f4f6"
     accent_btn = "#dc2626"
     box_bg = "#27272a"
-    muted_color = "#9ca3af"
+    muted_color = "#d1d5db"  # Terang & Kontras di mode gelap
 elif tema == "hijau":
     bg_sidebar = "#064e3b"
     bg_utama = "#f0fdf4"
-    fg_teks = "#064e3b"
+    fg_teks = "#022c22"      # Hijau sangat gelap
     accent_btn = "#059669"
     box_bg = "#d1fae5"
-    muted_color = "#047857"
+    muted_color = "#065f46"  # Hijau tua pekat (sangat kontras)
 elif tema == "ungu":
     bg_sidebar = "#3b0764"
     bg_utama = "#faf5ff"
-    fg_teks = "#3b0764"
+    fg_teks = "#2e1065"      # Ungu sangat gelap
     accent_btn = "#7c3aed"
     box_bg = "#f3e8ff"
-    muted_color = "#6b21a8"
+    muted_color = "#581c87"  # Ungu tua pekat (sangat kontras)
 else:  # biru
     bg_sidebar = "#0f172a"
     bg_utama = "#f4f6f8"
-    fg_teks = "#1e293b"
+    fg_teks = "#0f172a"      # Biru gelap pekat
     accent_btn = "#2563eb"
     box_bg = "#e2e8f0"
-    muted_color = "#64748b"
+    muted_color = "#334155"  # Abu-abu kebiruan tua (sangat kontras)
 
 st.markdown(f"""
     <style>
@@ -128,13 +128,16 @@ st.markdown(f"""
         background-color: {box_bg} !important;
         color: {fg_teks} !important;
         border-radius: 6px !important;
-        border: 1px solid rgba(0,0,0,0.1) !important;
+        border: 1px solid rgba(0,0,0,0.2) !important;
     }}
     .custom-card {{
         background-color: {box_bg};
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 15px;
+    }}
+    p, span, label, .streamlit-expanderHeader {{
+        color: {fg_teks} !important;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -143,9 +146,8 @@ st.markdown(f"""
 st.sidebar.markdown("<h2 style='text-align: center; letter-spacing: 1px;'>NovelNest</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
 
-st.sidebar.markdown(f"<p style='font-size: 11px; color: {muted_color}; text-transform: uppercase;'>Navigasi Menu</p>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<p style='font-size: 11px; color: #cbd5e1; text-transform: uppercase;'>Navigasi Menu</p>", unsafe_allow_html=True)
 
-# Logika Navigasi Sidebar
 menu_opsi = ["Beranda", "Masuk (Login)", "Registrasi Akun", "Koleksi Novel"]
 if st.session_state.is_admin:
     menu_opsi.append("Admin Dashboard")
@@ -154,7 +156,6 @@ navigasi = st.sidebar.radio("Pilih Menu", menu_opsi, label_visibility="collapsed
 
 st.sidebar.markdown("---")
 
-# Tombol Pengaturan Setting (Gerigi)
 if st.sidebar.button("⚙️ Setting Aplikasi", use_container_width=True):
     st.session_state.show_theme_selector = not st.session_state.show_theme_selector
 
@@ -172,22 +173,19 @@ if st.session_state.show_theme_selector:
 
 # ==================== KONTROL HALAMAN ====================
 
-# 1. HALAMAN BERANDA
 if navigasi == "Beranda":
-    # Tombol rahasia di judul beranda untuk akses login admin
     if st.button("✨ Selamat Datang di NovelNest", use_container_width=True):
         st.session_state.menu = "AdminLogin"
         st.rerun()
         
     st.markdown(f"""
         <div style='text-align: center; padding: 40px 0;'>
-            <p style='font-size: 16px; font-style: italic; color: {muted_color};'>
+            <p style='font-size: 16px; font-style: italic; color: {muted_color}; font-weight: 600;'>
                 Rumah digital bagi para reader yang suka membaca hal-hal seru dan mendalam.
             </p>
         </div>
     """, unsafe_allow_html=True)
 
-# 2. HALAMAN LOGIN ADMIN TERSEMBUNYI
 elif st.session_state.menu == "AdminLogin":
     st.title("🔐 ADMIN ACCESS")
     with st.form("form_login_admin"):
@@ -208,7 +206,6 @@ elif st.session_state.menu == "AdminLogin":
         st.session_state.menu = "Beranda"
         st.rerun()
 
-# 3. ADMIN DASHBOARD
 elif navigasi == "AdminDashboard" or st.session_state.menu == "AdminDashboard":
     st.title("📊 ADMIN DASHBOARD")
     
@@ -298,7 +295,6 @@ elif navigasi == "AdminDashboard" or st.session_state.menu == "AdminDashboard":
             for usr, pwd in active_users.items():
                 st.write(f"- Username: **{usr}** | Password: **{pwd}**")
 
-# 4. HALAMAN KOLEKSI NOVEL (PERLU LOGIN)
 elif navigasi == "Koleksi Novel":
     if not st.session_state.logged_in_user:
         st.warning("⚠️ Anda harus masuk (login) terlebih dahulu melalui menu 'Masuk (Login)' untuk membaca koleksi novel!")
@@ -344,14 +340,12 @@ elif navigasi == "Koleksi Novel":
                 st.markdown(f"### {current_novel['judul']} — {current_bab['nama_bab']}")
                 st.markdown("---")
                 
-                # Area Teks Bacaan yang Lebar dan Nyaman
                 st.markdown(f"""
-                    <div style='background-color: {box_bg}; padding: 25px; border-radius: 8px; line-height: 1.6; white-space: pre-wrap;'>
+                    <div style='background-color: {box_bg}; color: {fg_teks}; padding: 25px; border-radius: 8px; line-height: 1.6; white-space: pre-wrap; font-weight: 500;'>
 {current_bab['isi']}
                     </div>
                 """, unsafe_allow_html=True)
 
-# 5. HALAMAN LOGIN USER
 elif navigasi == "Masuk (Login)":
     st.title("🔑 USER LOGIN")
     with st.form("form_user_login"):
@@ -365,7 +359,6 @@ elif navigasi == "Masuk (Login)":
             else:
                 st.error("Username atau Password salah!")
 
-# 6. HALAMAN REGISTRASI
 elif navigasi == "Registrasi Akun":
     st.title("📝 USER REGISTRATION")
     
