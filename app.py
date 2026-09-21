@@ -99,6 +99,13 @@ st.markdown(f"""
     header {{
         visibility: hidden;
     }}
+    section[data-testid="stSidebar"] {{
+        width: 280px !important;
+        min-width: 280px !important;
+        transform: none !important;
+        visibility: visible !important;
+        position: relative !important;
+    }}
     .stApp {{
         background-color: {bg_utama};
         color: {fg_teks};
