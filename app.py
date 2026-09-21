@@ -632,10 +632,24 @@ elif navigasi == "Admin Dashboard":
                 )
             else:
                 for usr, pwd in active_users.items():
-                    st.write(
-                        f"- Username: **{usr}** "
-                        f"| Password: **{pwd}**"
-                    )
+                    col_u1, col_u2, col_u3 = st.columns([2, 1, 1])
+                    col_u1.write(f"- Username: **{usr}** | Password: **{pwd}**")
+                    
+                    new_pwd_input = col_u2.text_input("Password Baru", type="password", key=f"reset_pwd_{usr}")
+                    if col_u2.button("Reset Password", key=f"btn_reset_{usr}"):
+                        if new_pwd_input.strip():
+                            db["users_terdaftar"][usr] = new_pwd_input.strip()
+                            simpan_data(db)
+                            st.success(f"Password untuk user {usr} berhasil direset.")
+                            st.rerun()
+                        else:
+                            st.warning("Masukkan password baru terlebih dahulu.")
+                            
+                    if col_u3.button("Hapus Akun", key=f"btn_del_usr_{usr}"):
+                        del db["users_terdaftar"][usr]
+                        simpan_data(db)
+                        st.success(f"Akun {usr} berhasil dihapus.")
+                        st.rerun()
 
 elif navigasi == "Koleksi Novel":
     if not st.session_state.logged_in_user:
