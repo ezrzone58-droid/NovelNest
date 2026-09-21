@@ -98,6 +98,7 @@ else:
     box_bg = "#e2e8f0"
     muted_color = "#334155"
 
+# Logika CSS untuk menyembunyikan sidebar secara dinamis berdasarkan state
 sidebar_display_css = "" if st.session_state.sidebar_open else '[data-testid="stSidebar"] { display: none !important; }'
 
 st.markdown(
@@ -113,7 +114,9 @@ st.markdown(
         background-color: {bg_sidebar};
         padding-top: 15px !important;
     }}
-    [data-testid="collapsedControl"] {{
+    /* Sembunyikan semua tombol panah/bawaan Streamlit agar tidak konflik */
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapseButton"] {{
         display: none !important;
     }}
     [data-testid="stSidebar"] * {{
@@ -157,6 +160,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# Tombol Menu di halaman utama
 if st.button("Menu"):
     st.session_state.sidebar_open = not st.session_state.sidebar_open
     st.rerun()
@@ -822,7 +826,7 @@ elif st.session_state.menu == "Registrasi":
                                 "id": id_temp,
                                 "kode": "",
                                 "username": "",
-                                "password": "",
+                                "password": ""
                             }
                         )
 
