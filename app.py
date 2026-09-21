@@ -283,7 +283,6 @@ if navigasi == "Beranda":
             text-align: center;
             padding: 20px 0;
         ">
-
             <p style="
                 font-size: 16px;
                 font-style: italic;
@@ -293,7 +292,6 @@ if navigasi == "Beranda":
                 Rumah digital bagi para pembaca untuk
                 menikmati berbagai cerita menarik.
             </p>
-
         </div>
         """,
         unsafe_allow_html=True
