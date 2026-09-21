@@ -96,11 +96,8 @@ else:
 
 st.markdown(f"""
     <style>
-    section[data-testid="stSidebar"] [data-testid="stSidebarNav"] {{
-        display: none !important;
-    }}
-    section[data-testid="stSidebar"] button div p {{
-        font-size: 15px !important;
+    header {{
+        visibility: hidden;
     }}
     .stApp {{
         background-color: {bg_utama};
