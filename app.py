@@ -96,16 +96,6 @@ else:
 
 st.markdown(f"""
     <style>
-    header {{
-        visibility: hidden;
-    }}
-    section[data-testid="stSidebar"] {{
-        width: 280px !important;
-        min-width: 280px !important;
-        transform: none !important;
-        visibility: visible !important;
-        position: relative !important;
-    }}
     .stApp {{
         background-color: {bg_utama};
         color: {fg_teks};
@@ -119,22 +109,6 @@ st.markdown(f"""
         color: #ffffff !important;
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
-    [data-testid="stSidebar"] div.stButton > button {{
-        width: 100%;
-        background-color: rgba(255, 255, 255, 0.08);
-        color: white;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        padding: 0.7rem 1rem;
-        font-weight: 600;
-        text-align: left;
-        margin-bottom: 8px;
-        transition: all 0.2s ease-in-out;
-    }}
-    [data-testid="stSidebar"] div.stButton > button:hover {{
-        background-color: {accent_btn};
-        border-color: transparent;
-    }}
     div.stButton > button {{
         background-color: {accent_btn};
         color: white;
@@ -142,6 +116,7 @@ st.markdown(f"""
         border: none;
         padding: 0.5rem 1rem;
         font-weight: 600;
+        width: 100%;
     }}
     input, textarea {{
         background-color: {box_bg} !important;
@@ -160,34 +135,11 @@ st.sidebar.markdown("<h2 style='text-align: center; letter-spacing: 1px; font-we
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"<p style='font-size: 11px; color: #cbd5e1; text-transform: uppercase; font-weight: 600;'>Menu Navigasi</p>", unsafe_allow_html=True)
 
-if st.sidebar.button("Beranda"):
-    st.session_state.menu = "Beranda"
-    st.session_state.selected_novel = None
-    st.session_state.selected_bab = None
-    st.session_state.admin_step = 0
-    st.rerun()
-
-if st.sidebar.button("Masuk (Login)"):
-    st.session_state.menu = "Login"
-    st.session_state.admin_step = 0
-    st.rerun()
-
-if st.sidebar.button("Registrasi Akun"):
-    st.session_state.menu = "Registrasi"
-    st.session_state.admin_step = 0
-    st.rerun()
-
-if st.sidebar.button("Koleksi Novel"):
-    st.session_state.menu = "Koleksi"
-    st.session_state.selected_novel = None
-    st.session_state.selected_bab = None
-    st.session_state.admin_step = 0
-    st.rerun()
-
-if st.session_state.is_admin:
-    if st.sidebar.button("Admin Dashboard"):
-        st.session_state.menu = "AdminDashboard"
-        st.rerun()
+navigasi = st.sidebar.radio(
+    "Navigasi",
+    ["Beranda", "Masuk (Login)", "Registrasi Akun", "Koleksi Novel"] + (["Admin Dashboard"] if st.session_state.is_admin else []),
+    label_visibility="collapsed"
+)
 
 st.sidebar.markdown("---")
 
@@ -206,7 +158,7 @@ if st.session_state.show_theme_selector:
         simpan_data(db)
         st.rerun()
 
-if st.session_state.menu == "Beranda":
+if navigasi == "Beranda":
     st.markdown("<h1 style='text-align: center; font-weight: 800;'>NovelNest</h1>", unsafe_allow_html=True)
     st.markdown(f"""
         <div style='text-align: center; padding: 20px 0;'>
@@ -216,7 +168,7 @@ if st.session_state.menu == "Beranda":
         </div>
     """, unsafe_allow_html=True)
 
-elif st.session_state.menu == "Login":
+elif navigasi == "Masuk (Login)":
     st.title("User Login")
     
     if st.session_state.admin_step == 1:
@@ -239,8 +191,7 @@ elif st.session_state.menu == "Login":
                 if v2 == "321":
                     st.session_state.is_admin = True
                     st.session_state.admin_step = 0
-                    st.session_state.menu = "AdminDashboard"
-                    st.success("Verifikasi sukses! Mengalihkan ke halaman admin.")
+                    st.success("Verifikasi sukses! Silakan pilih menu Admin Dashboard di sidebar.")
                     st.rerun()
                 else:
                     st.error("Password lapis kedua salah.")
@@ -261,18 +212,14 @@ elif st.session_state.menu == "Login":
                     else:
                         st.error("Username atau Password salah.")
 
-elif st.session_state.menu == "AdminDashboard":
+elif navigasi == "Admin Dashboard":
     if not st.session_state.is_admin:
         st.error("Akses ditolak! Halaman ini bersifat rahasia.")
-        if st.button("Kembali ke Beranda"):
-            st.session_state.menu = "Beranda"
-            st.rerun()
     else:
         st.title("Admin Dashboard")
         
         if st.button("Keluar dari Mode Admin"):
             st.session_state.is_admin = False
-            st.session_state.menu = "Beranda"
             st.rerun()
             
         tab_a, tab_b, tab_c = st.tabs(["Kelola Novel", "Kelola Bab", "Data User dan Antrean"])
@@ -356,7 +303,7 @@ elif st.session_state.menu == "AdminDashboard":
                 for usr, pwd in active_users.items():
                     st.write(f"- Username: **{usr}** | Password: **{pwd}**")
 
-elif st.session_state.menu == "Koleksi":
+elif navigasi == "Koleksi Novel":
     if not st.session_state.logged_in_user:
         st.warning("Anda harus masuk (login) terlebih dahulu melalui menu 'Masuk (Login)' untuk membaca koleksi novel.")
     else:
@@ -438,7 +385,7 @@ elif st.session_state.menu == "Koleksi":
                             </div>
                         """, unsafe_allow_html=True)
 
-elif st.session_state.menu == "Registrasi":
+elif navigasi == "Registrasi Akun":
     st.title("User Registration")
     
     t_reg1, t_reg2 = st.tabs(["1. Ajukan ID Sementara", "2. Aktivasi Akun & Ubah Profil"])
@@ -469,7 +416,7 @@ elif st.session_state.menu == "Registrasi":
                 target_q = next((x for x in db["antrian_registrasi"] if x['id'] == inp_id), None)
                 if not target_q:
                     st.error("ID tidak ditemukan dalam antrean registrasi.")
-                elif target_q.get('kode') != inp_kode:
+                elif target_q.get('kode'] != inp_kode:
                     st.error("Kode verifikasi salah atau belum dikirimkan oleh admin.")
                 elif inp_new_u in db["users_terdaftar"]:
                     st.error("Username tersebut sudah digunakan orang lain.")
