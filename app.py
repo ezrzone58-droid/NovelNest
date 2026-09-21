@@ -651,6 +651,14 @@ elif navigasi == "Admin Dashboard":
                     "Tidak ada antrean registrasi."
                 )
             else:
+                if st.button("🗑️ Hapus Semua Antrean Menumpuk", key="btn_clear_queue"):
+                    db["antrian_registrasi"] = []
+                    simpan_data(db)
+                    st.success("Semua antrean registrasi berhasil dibersihkan.")
+                    st.rerun()
+
+                st.markdown("---")
+
                 for q_idx, req in enumerate(
                     db["antrian_registrasi"]
                 ):
@@ -685,9 +693,12 @@ elif navigasi == "Admin Dashboard":
 
                     st.markdown("---")
 
-            st.subheader(
-                "Database User Aktif"
-            )
+            col_sub_u1, col_sub_u2 = st.columns([3, 1])
+            col_sub_u1.subheader("Database User Aktif")
+            if col_sub_u2.button("🔄 Muat Ulang User", key="btn_restart_users_list"):
+                st.session_state.db = muat_data()
+                st.success("Daftar user diperbarui!")
+                st.rerun()
 
             active_users = {
                 k: v
