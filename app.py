@@ -64,7 +64,7 @@ if "show_theme_selector" not in st.session_state:
 
 db = st.session_state.db
 
-# ==================== Kustomisasi Tema & CSS (Kontras Tinggi) ====================
+# ==================== Kustomisasi Tema & CSS (Tanpa Emotikon, Tombol Besar) ====================
 tema = db.get("tema", "biru")
 if tema == "merah":
     bg_sidebar = "#18181b"
@@ -72,28 +72,28 @@ if tema == "merah":
     fg_teks = "#f3f4f6"
     accent_btn = "#dc2626"
     box_bg = "#27272a"
-    muted_color = "#d1d5db"  # Terang & Kontras di mode gelap
+    muted_color = "#d1d5db"
 elif tema == "hijau":
     bg_sidebar = "#064e3b"
     bg_utama = "#f0fdf4"
-    fg_teks = "#022c22"      # Hijau sangat gelap
+    fg_teks = "#022c22"
     accent_btn = "#059669"
     box_bg = "#d1fae5"
-    muted_color = "#065f46"  # Hijau tua pekat (sangat kontras)
+    muted_color = "#065f46"
 elif tema == "ungu":
     bg_sidebar = "#3b0764"
     bg_utama = "#faf5ff"
-    fg_teks = "#2e1065"      # Ungu sangat gelap
+    fg_teks = "#2e1065"
     accent_btn = "#7c3aed"
     box_bg = "#f3e8ff"
-    muted_color = "#581c87"  # Ungu tua pekat (sangat kontras)
+    muted_color = "#581c87"
 else:  # biru
     bg_sidebar = "#0f172a"
     bg_utama = "#f4f6f8"
-    fg_teks = "#0f172a"      # Biru gelap pekat
+    fg_teks = "#0f172a"
     accent_btn = "#2563eb"
     box_bg = "#e2e8f0"
-    muted_color = "#334155"  # Abu-abu kebiruan tua (sangat kontras)
+    muted_color = "#334155"
 
 st.markdown(f"""
     <style>
@@ -110,6 +110,24 @@ st.markdown(f"""
         color: #ffffff !important;
         font-family: 'Century Gothic', sans-serif;
     }}
+    /* Membuat tombol navigasi sidebar berbentuk kotak besar penuh */
+    [data-testid="stSidebar"] div.stButton > button {{
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 0.75rem 1rem;
+        font-weight: bold;
+        text-align: left;
+        margin-bottom: 8px;
+        transition: all 0.2s ease-in-out;
+    }}
+    [data-testid="stSidebar"] div.stButton > button:hover {{
+        background-color: {accent_btn};
+        border-color: transparent;
+    }}
+    /* Tombol utama di area konten */
     div.stButton > button {{
         background-color: {accent_btn};
         color: white;
@@ -117,12 +135,6 @@ st.markdown(f"""
         border: none;
         padding: 0.5rem 1rem;
         font-weight: bold;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: all 0.2s ease-in-out;
-    }}
-    div.stButton > button:hover {{
-        opacity: 0.85;
-        transform: translateY(-1px);
     }}
     input, textarea {{
         background-color: {box_bg} !important;
@@ -130,33 +142,46 @@ st.markdown(f"""
         border-radius: 6px !important;
         border: 1px solid rgba(0,0,0,0.2) !important;
     }}
-    .custom-card {{
-        background-color: {box_bg};
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-    }}
-    p, span, label, .streamlit-expanderHeader {{
+    p, span, label {{
         color: {fg_teks} !important;
     }}
     </style>
 """, unsafe_allow_html=True)
 
-# ==================== SIDEBAR UTAMA ====================
+# ==================== SIDEBAR NAVIGASI (Tombol Besar) ====================
 st.sidebar.markdown("<h2 style='text-align: center; letter-spacing: 1px;'>NovelNest</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
+st.sidebar.markdown(f"<p style='font-size: 11px; color: #cbd5e1; text-transform: uppercase;'>Menu Navigasi</p>", unsafe_allow_html=True)
 
-st.sidebar.markdown(f"<p style='font-size: 11px; color: #cbd5e1; text-transform: uppercase;'>Navigasi Menu</p>", unsafe_allow_html=True)
+if st.sidebar.button("Beranda"):
+    st.session_state.menu = "Beranda"
+    st.session_state.selected_novel = None
+    st.session_state.selected_bab = None
+    st.rerun()
 
-menu_opsi = ["Beranda", "Masuk (Login)", "Registrasi Akun", "Koleksi Novel"]
+if st.sidebar.button("Masuk (Login)"):
+    st.session_state.menu = "Login"
+    st.rerun()
+
+if st.sidebar.button("Registrasi Akun"):
+    st.session_state.menu = "Registrasi"
+    st.rerun()
+
+if st.sidebar.button("Koleksi Novel"):
+    st.session_state.menu = "Koleksi"
+    st.session_state.selected_novel = None
+    st.session_state.selected_bab = None
+    st.rerun()
+
+# Tombol khusus Admin di Sidebar hanya muncul jika sudah login admin
 if st.session_state.is_admin:
-    menu_opsi.append("Admin Dashboard")
-
-navigasi = st.sidebar.radio("Pilih Menu", menu_opsi, label_visibility="collapsed")
+    if st.sidebar.button("Admin Dashboard"):
+        st.session_state.menu = "AdminDashboard"
+        st.rerun()
 
 st.sidebar.markdown("---")
 
-if st.sidebar.button("⚙️ Setting Aplikasi", use_container_width=True):
+if st.sidebar.button("Setting Aplikasi"):
     st.session_state.show_theme_selector = not st.session_state.show_theme_selector
 
 if st.session_state.show_theme_selector:
@@ -171,23 +196,25 @@ if st.session_state.show_theme_selector:
         simpan_data(db)
         st.rerun()
 
-# ==================== KONTROL HALAMAN ====================
+# ==================== KONTROL HALAMAN UTAMA ====================
 
-if navigasi == "Beranda":
-    if st.button("✨ Selamat Datang di NovelNest", use_container_width=True):
+# 1. HALAMAN BERANDA
+if st.session_state.menu == "Beranda":
+    if st.button("Selamat Datang di NovelNest (Klik untuk Akses Admin)", use_container_width=True):
         st.session_state.menu = "AdminLogin"
         st.rerun()
         
     st.markdown(f"""
         <div style='text-align: center; padding: 40px 0;'>
             <p style='font-size: 16px; font-style: italic; color: {muted_color}; font-weight: 600;'>
-                Rumah digital bagi para reader yang suka membaca hal-hal seru dan mendalam.
+                Rumah digital bagi para pembaca untuk menikmati berbagai cerita menarik.
             </p>
         </div>
     """, unsafe_allow_html=True)
 
+# 2. HALAMAN LOGIN ADMIN RAHASIA
 elif st.session_state.menu == "AdminLogin":
-    st.title("🔐 ADMIN ACCESS")
+    st.title("Verifikasi Keamanan Admin")
     with st.form("form_login_admin"):
         p1 = st.text_input("Verifikasi Atas (Pass: 123):", type="password")
         p2 = st.text_input("Verifikasi Bawah (Pass: abc):", type="password")
@@ -197,109 +224,117 @@ elif st.session_state.menu == "AdminLogin":
             if p1 == "123" and p2 == "abc":
                 st.session_state.is_admin = True
                 st.session_state.menu = "AdminDashboard"
-                st.success("Verifikasi berhasil! Mengalihkan ke Dashboard...")
+                st.success("Verifikasi berhasil. Mengalihkan ke Dashboard...")
                 st.rerun()
             else:
-                st.error("Verifikasi kredensial salah!")
+                st.error("Kredensial verifikasi salah. Akses ditolak.")
                 
-    if st.button("Kembali ke Beranda Utama"):
+    if st.button("Kembali ke Beranda"):
         st.session_state.menu = "Beranda"
         st.rerun()
 
-elif navigasi == "AdminDashboard" or st.session_state.menu == "AdminDashboard":
-    st.title("📊 ADMIN DASHBOARD")
-    
-    if st.button("🚪 Logout dari Mode Admin"):
-        st.session_state.is_admin = False
-        st.session_state.menu = "Beranda"
-        st.rerun()
+# 3. ADMIN DASHBOARD (Proteksi Ketat)
+elif st.session_state.menu == "AdminDashboard":
+    if not st.session_state.is_admin:
+        st.error("Akses ditolak! Halaman ini bersifat rahasia dan khusus administrator.")
+        if st.button("Kembali ke Beranda Utama"):
+            st.session_state.menu = "Beranda"
+            st.rerun()
+    else:
+        st.title("Admin Dashboard")
         
-    tab_a, tab_b, tab_c = st.tabs(["📚 Kelola Novel", "✏️ Kelola Bab", "👥 Data User & Antrean"])
-    
-    with tab_a:
-        st.subheader("Tambah Novel Baru")
-        with st.form("tambah_novel_form"):
-            jdl = st.text_input("Judul Novel")
-            gnr = st.text_input("Deskripsi / Genre")
-            if st.form_submit_button("Simpan Novel"):
-                if jdl and gnr:
-                    db["daftar_novel"].append({"judul": jdl, "genre": gnr, "babad": []})
-                    simpan_data(db)
-                    st.success("Novel baru berhasil ditambahkan!")
-                    st.rerun()
-                else:
-                    st.warning("Judul dan genre tidak boleh kosong.")
-                    
-        st.markdown("---")
-        st.subheader("Daftar Hapus Novel")
-        if not db["daftar_novel"]:
-            st.info("Belum ada novel di database.")
-        else:
-            for idx, nov in enumerate(db["daftar_novel"]):
-                c1, c2 = st.columns([3, 1])
-                c1.write(f"**{nov['judul']}** ({nov['genre']})")
-                if c2.button("Hapus", key=f"hapus_nov_{idx}"):
-                    db["daftar_novel"].remove(nov)
-                    simpan_data(db)
-                    st.rerun()
-
-    with tab_b:
-        st.subheader("Manajemen Bab Cerita")
-        if not db["daftar_novel"]:
-            st.info("Belum ada novel tersedia untuk diberi bab.")
-        else:
-            pilih_nov_nama = st.selectbox("Pilih Novel", [n['judul'] for n in db["daftar_novel"]])
-            target_n = next(n for n in db["daftar_novel"] if n['judul'] == pilih_nov_nama)
+        if st.button("Keluar dari Mode Admin"):
+            st.session_state.is_admin = False
+            st.session_state.menu = "Beranda"
+            st.rerun()
             
-            st.markdown("**Bab Terdaftar:**")
-            if not target_n['babad']:
-                st.caption("Belum ada bab.")
-            else:
-                for b_item in target_n['babad']:
-                    st.write(f"- {b_item['nama_bab']}")
-                    
-            st.markdown("---")
-            with st.form("tambah_bab_form"):
-                nama_b = st.text_input("Nama Bab (Contoh: Bab 1 - Awal Mula)")
-                isi_b = st.text_area("Isi Cerita Lengkap", height=150)
-                if st.form_submit_button("Simpan Bab Baru"):
-                    if nama_b and isi_b:
-                        target_n['babad'].append({"nama_bab": nama_b, "isi": isi_b})
+        tab_a, tab_b, tab_c = st.tabs(["Kelola Novel", "Kelola Bab", "Data User dan Antrean"])
+        
+        with tab_a:
+            st.subheader("Tambah Novel Baru")
+            with st.form("tambah_novel_form"):
+                jdl = st.text_input("Judul Novel")
+                gnr = st.text_input("Deskripsi / Genre")
+                if st.form_submit_button("Simpan Novel"):
+                    if jdl and gnr:
+                        db["daftar_novel"].append({"judul": jdl, "genre": gnr, "babad": []})
                         simpan_data(db)
-                        st.success("Bab berhasil disimpan!")
+                        st.success("Novel baru berhasil ditambahkan.")
                         st.rerun()
                     else:
-                        st.warning("Nama bab dan isi cerita wajib diisi.")
+                        st.warning("Judul dan genre wajib diisi.")
+                        
+            st.markdown("---")
+            st.subheader("Daftar Hapus Novel")
+            if not db["daftar_novel"]:
+                st.info("Belum ada novel di database.")
+            else:
+                for idx, nov in enumerate(db["daftar_novel"]):
+                    c1, c2 = st.columns([3, 1])
+                    c1.write(f"**{nov['judul']}** ({nov['genre']})")
+                    if c2.button("Hapus", key=f"hapus_nov_{idx}"):
+                        db["daftar_novel"].remove(nov)
+                        simpan_data(db)
+                        st.rerun()
 
-    with tab_c:
-        st.subheader("Antrean Registrasi Pengajuan User")
-        if not db["antrian_registrasi"]:
-            st.info("Tidak ada antrean registrasi.")
-        else:
-            for q_idx, req in enumerate(db["antrian_registrasi"]):
-                col_1, col_2, col_3 = st.columns([2, 1, 1])
-                col_1.write(f"ID Sementara: **{req['id']}**")
-                kode_inputan = col_2.text_input("Kode Verifikasi", value=req.get('kode', ''), key=f"q_kode_{q_idx}")
-                if col_3.button("Kirim Kode", key=f"btn_q_{q_idx}"):
-                    req['kode'] = kode_inputan
-                    simpan_data(db)
-                    st.success(f"Kode untuk ID {req['id']} berhasil dikirim!")
-                    st.rerun()
-                st.markdown("---")
+        with tab_b:
+            st.subheader("Manajemen Bab Cerita")
+            if not db["daftar_novel"]:
+                st.info("Belum ada novel tersedia untuk diberi bab.")
+            else:
+                pilih_nov_nama = st.selectbox("Pilih Novel", [n['judul'] for n in db["daftar_novel"]])
+                target_n = next(n for n in db["daftar_novel"] if n['judul'] == pilih_nov_nama)
                 
-        st.subheader("Database User Aktif")
-        active_users = {k: v for k, v in db["users_terdaftar"].items() if k != "admin"}
-        if not active_users:
-            st.info("Belum ada user terdaftar selain admin.")
-        else:
-            for usr, pwd in active_users.items():
-                st.write(f"- Username: **{usr}** | Password: **{pwd}**")
+                st.markdown("**Bab Terdaftar:**")
+                if not target_n['babad']:
+                    st.caption("Belum ada bab.")
+                else:
+                    for b_item in target_n['babad']:
+                        st.write(f"- {b_item['nama_bab']}")
+                        
+                st.markdown("---")
+                with st.form("tambah_bab_form"):
+                    nama_b = st.text_input("Nama Bab (Contoh: Bab 1)")
+                    isi_b = st.text_area("Isi Cerita Lengkap", height=150)
+                    if st.form_submit_button("Simpan Bab Baru"):
+                        if nama_b and isi_b:
+                            target_n['babad'].append({"nama_bab": nama_b, "isi": isi_b})
+                            simpan_data(db)
+                            st.success("Bab berhasil disimpan.")
+                            st.rerun()
+                        else:
+                            st.warning("Nama bab dan isi cerita wajib diisi.")
 
-elif navigasi == "Koleksi Novel":
+        with tab_c:
+            st.subheader("Antrean Registrasi Pengajuan User")
+            if not db["antrian_registrasi"]:
+                st.info("Tidak ada antrean registrasi.")
+            else:
+                for q_idx, req in enumerate(db["antrian_registrasi"]):
+                    col_1, col_2, col_3 = st.columns([2, 1, 1])
+                    col_1.write(f"ID Sementara: **{req['id']}**")
+                    kode_inputan = col_2.text_input("Kode Verifikasi", value=req.get('kode', ''), key=f"q_kode_{q_idx}")
+                    if col_3.button("Kirim Kode", key=f"btn_q_{q_idx}"):
+                        req['kode'] = kode_inputan
+                        simpan_data(db)
+                        st.success(f"Kode untuk ID {req['id']} berhasil dikirim.")
+                        st.rerun()
+                    st.markdown("---")
+                    
+            st.subheader("Database User Aktif")
+            active_users = {k: v for k, v in db["users_terdaftar"].items() if k != "admin"}
+            if not active_users:
+                st.info("Belum ada user terdaftar selain admin.")
+            else:
+                for usr, pwd in active_users.items():
+                    st.write(f"- Username: **{usr}** | Password: **{pwd}**")
+
+# 4. HALAMAN KOLEKSI NOVEL
+elif st.session_state.menu == "Koleksi":
     if not st.session_state.logged_in_user:
-        st.warning("⚠️ Anda harus masuk (login) terlebih dahulu melalui menu 'Masuk (Login)' untuk membaca koleksi novel!")
+        st.warning("Anda harus masuk (login) terlebih dahulu melalui menu 'Masuk (Login)' untuk membaca koleksi novel.")
     else:
-        st.title("📚 NovelNest Library")
+        st.title("NovelNest Library")
         st.markdown(f"Status Login: **{st.session_state.logged_in_user}**")
         st.markdown("---")
         
@@ -309,18 +344,18 @@ elif navigasi == "Koleksi Novel":
                 st.info("Belum ada novel tersedia.")
             else:
                 for idx_n, n_item in enumerate(db["daftar_novel"]):
-                    if st.button(f"📖 {n_item['judul']} [{n_item['genre']}]", key=f"pilih_n_{idx_n}", use_container_width=True):
+                    if st.button(f"{n_item['judul']} [{n_item['genre']}]", key=f"pilih_n_{idx_n}", use_container_width=True):
                         st.session_state.selected_novel = n_item
                         st.rerun()
         else:
             current_novel = st.session_state.selected_novel
-            if st.button("⬅️ Kembali ke Daftar Novel"):
+            if st.button("Kembali ke Daftar Novel"):
                 st.session_state.selected_novel = None
                 st.session_state.selected_bab = None
                 st.rerun()
                 
             if st.session_state.selected_bab is None:
-                st.title(f"📖 {current_novel['judul']}")
+                st.title(f"{current_novel['judul']}")
                 st.markdown(f"**Genre/Deskripsi:** {current_novel['genre']}")
                 st.markdown("---")
                 st.subheader("Daftar Bab Tersedia")
@@ -328,12 +363,12 @@ elif navigasi == "Koleksi Novel":
                     st.info("Belum ada bab yang ditulis untuk novel ini.")
                 else:
                     for idx_b, b_item in enumerate(current_novel['babad']):
-                        if st.button(f"• {b_item['nama_bab']}", key=f"buka_b_{idx_b}"):
+                        if st.button(f"{b_item['nama_bab']}", key=f"buka_b_{idx_b}"):
                             st.session_state.selected_bab = b_item
                             st.rerun()
             else:
                 current_bab = st.session_state.selected_bab
-                if st.button("⬅️ Kembali ke Daftar Bab"):
+                if st.button("Kembali ke Daftar Bab"):
                     st.session_state.selected_bab = None
                     st.rerun()
                     
@@ -346,8 +381,9 @@ elif navigasi == "Koleksi Novel":
                     </div>
                 """, unsafe_allow_html=True)
 
-elif navigasi == "Masuk (Login)":
-    st.title("🔑 USER LOGIN")
+# 5. HALAMAN LOGIN USER
+elif st.session_state.menu == "Login":
+    st.title("User Login")
     with st.form("form_user_login"):
         u_name = st.text_input("Username")
         u_pass = st.text_input("Password", type="password")
@@ -355,12 +391,13 @@ elif navigasi == "Masuk (Login)":
             registered = db["users_terdaftar"]
             if u_name in registered and registered[u_name] == u_pass:
                 st.session_state.logged_in_user = u_name
-                st.success(f"Berhasil masuk sebagai {u_name}! Silakan buka menu 'Koleksi Novel'.")
+                st.success(f"Berhasil masuk sebagai {u_name}. Silakan buka menu 'Koleksi Novel'.")
             else:
-                st.error("Username atau Password salah!")
+                st.error("Username atau Password salah.")
 
-elif navigasi == "Registrasi Akun":
-    st.title("📝 USER REGISTRATION")
+# 6. HALAMAN REGISTRASI
+elif st.session_state.menu == "Registrasi":
+    st.title("User Registration")
     
     t_reg1, t_reg2 = st.tabs(["1. Ajukan ID Sementara", "2. Aktivasi Akun & Ubah Profil"])
     
@@ -378,7 +415,7 @@ elif navigasi == "Registrasi Akun":
                     else:
                         db["antrian_registrasi"].append({"id": id_temp, "kode": "", "username": "", "password": ""})
                         simpan_data(db)
-                        st.success(f"Pengajuan berhasil dikirim! Nomor antrean Anda: #{len(db['antrian_registrasi'])}")
+                        st.success(f"Pengajuan berhasil dikirim. Nomor antrean Anda: #{len(db['antrian_registrasi'])}")
                         
     with t_reg2:
         with st.form("form_aktivasi_akun"):
@@ -398,4 +435,4 @@ elif navigasi == "Registrasi Akun":
                     db["users_terdaftar"][inp_new_u] = inp_new_p
                     db["antrian_registrasi"].remove(target_q)
                     simpan_data(db)
-                    st.success("Akun berhasil diaktifkan! Silakan lakukan login melalui menu 'Masuk (Login)'.")
+                    st.success("Akun berhasil diaktifkan. Silakan lakukan login melalui menu 'Masuk (Login)'.")
