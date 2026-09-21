@@ -59,12 +59,15 @@ if "logged_in_user" not in st.session_state:
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
+if "admin_step" not in st.session_state:
+    st.session_state.admin_step = 0  # 0: Normal, 1: Verifikasi Lapis 1, 2: Verifikasi Lapis 2
+
 if "show_theme_selector" not in st.session_state:
     st.session_state.show_theme_selector = False
 
 db = st.session_state.db
 
-# ==================== Kustomisasi Tema & CSS (Tanpa Emotikon, Tombol Besar) ====================
+# ==================== Kustomisasi Tema & Font Modern ====================
 tema = db.get("tema", "biru")
 if tema == "merah":
     bg_sidebar = "#18181b"
@@ -100,7 +103,7 @@ st.markdown(f"""
     .stApp {{
         background-color: {bg_utama};
         color: {fg_teks};
-        font-family: 'Century Gothic', sans-serif;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
     [data-testid="stSidebar"] {{
         background-color: {bg_sidebar};
@@ -108,17 +111,17 @@ st.markdown(f"""
     }}
     [data-testid="stSidebar"] * {{
         color: #ffffff !important;
-        font-family: 'Century Gothic', sans-serif;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
-    /* Membuat tombol navigasi sidebar berbentuk kotak besar penuh */
+    /* Tombol Navigasi Sidebar Modern & Elegan */
     [data-testid="stSidebar"] div.stButton > button {{
         width: 100%;
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.08);
         color: white;
         border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 0.75rem 1rem;
-        font-weight: bold;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 0.7rem 1rem;
+        font-weight: 600;
         text-align: left;
         margin-bottom: 8px;
         transition: all 0.2s ease-in-out;
@@ -127,14 +130,14 @@ st.markdown(f"""
         background-color: {accent_btn};
         border-color: transparent;
     }}
-    /* Tombol utama di area konten */
+    /* Tombol Utama Konten */
     div.stButton > button {{
         background-color: {accent_btn};
         color: white;
         border-radius: 6px;
         border: none;
         padding: 0.5rem 1rem;
-        font-weight: bold;
+        font-weight: 600;
     }}
     input, textarea {{
         background-color: {box_bg} !important;
@@ -144,36 +147,40 @@ st.markdown(f"""
     }}
     p, span, label {{
         color: {fg_teks} !important;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
     </style>
 """, unsafe_allow_html=True)
 
-# ==================== SIDEBAR NAVIGASI (Tombol Besar) ====================
-st.sidebar.markdown("<h2 style='text-align: center; letter-spacing: 1px;'>NovelNest</h2>", unsafe_allow_html=True)
+# ==================== SIDEBAR NAVIGASI ====================
+st.sidebar.markdown("<h2 style='text-align: center; letter-spacing: 1px; font-weight: 700;'>NovelNest</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
-st.sidebar.markdown(f"<p style='font-size: 11px; color: #cbd5e1; text-transform: uppercase;'>Menu Navigasi</p>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<p style='font-size: 11px; color: #cbd5e1; text-transform: uppercase; font-weight: 600;'>Menu Navigasi</p>", unsafe_allow_html=True)
 
 if st.sidebar.button("Beranda"):
     st.session_state.menu = "Beranda"
     st.session_state.selected_novel = None
     st.session_state.selected_bab = None
+    st.session_state.admin_step = 0
     st.rerun()
 
 if st.sidebar.button("Masuk (Login)"):
     st.session_state.menu = "Login"
+    st.session_state.admin_step = 0
     st.rerun()
 
 if st.sidebar.button("Registrasi Akun"):
     st.session_state.menu = "Registrasi"
+    st.session_state.admin_step = 0
     st.rerun()
 
 if st.sidebar.button("Koleksi Novel"):
     st.session_state.menu = "Koleksi"
     st.session_state.selected_novel = None
     st.session_state.selected_bab = None
+    st.session_state.admin_step = 0
     st.rerun()
 
-# Tombol khusus Admin di Sidebar hanya muncul jika sudah login admin
 if st.session_state.is_admin:
     if st.sidebar.button("Admin Dashboard"):
         st.session_state.menu = "AdminDashboard"
@@ -181,7 +188,8 @@ if st.session_state.is_admin:
 
 st.sidebar.markdown("---")
 
-if st.sidebar.button("Setting Aplikasi"):
+# Tombol Setting dengan Gambar Gerigi
+if st.sidebar.button("⚙️ Setting Aplikasi"):
     st.session_state.show_theme_selector = not st.session_state.show_theme_selector
 
 if st.session_state.show_theme_selector:
@@ -200,44 +208,68 @@ if st.session_state.show_theme_selector:
 
 # 1. HALAMAN BERANDA
 if st.session_state.menu == "Beranda":
-    if st.button("Selamat Datang di NovelNest (Klik untuk Akses Admin)", use_container_width=True):
-        st.session_state.menu = "AdminLogin"
-        st.rerun()
-        
+    st.markdown("<h1 style='text-align: center; font-weight: 800;'>NovelNest</h1>", unsafe_allow_html=True)
     st.markdown(f"""
-        <div style='text-align: center; padding: 40px 0;'>
-            <p style='font-size: 16px; font-style: italic; color: {muted_color}; font-weight: 600;'>
+        <div style='text-align: center; padding: 20px 0;'>
+            <p style='font-size: 16px; font-style: italic; color: {muted_color}; font-weight: 500;'>
                 Rumah digital bagi para pembaca untuk menikmati berbagai cerita menarik.
             </p>
         </div>
     """, unsafe_allow_html=True)
 
-# 2. HALAMAN LOGIN ADMIN RAHASIA
-elif st.session_state.menu == "AdminLogin":
-    st.title("Verifikasi Keamanan Admin")
-    with st.form("form_login_admin"):
-        p1 = st.text_input("Verifikasi Atas (Pass: 123):", type="password")
-        p2 = st.text_input("Verifikasi Bawah (Pass: abc):", type="password")
-        submit_adm = st.form_submit_button("Masuk Sistem Admin")
-        
-        if submit_adm:
-            if p1 == "123" and p2 == "abc":
-                st.session_state.is_admin = True
-                st.session_state.menu = "AdminDashboard"
-                st.success("Verifikasi berhasil. Mengalihkan ke Dashboard...")
-                st.rerun()
-            else:
-                st.error("Kredensial verifikasi salah. Akses ditolak.")
-                
-    if st.button("Kembali ke Beranda"):
-        st.session_state.menu = "Beranda"
-        st.rerun()
+# 2. HALAMAN LOGIN & VERIFIKASI BERLAPIS ADMIN
+elif st.session_state.menu == "Login":
+    st.title("User Login")
+    
+    # Jika sistem mendeteksi input admin berlanjut ke verifikasi ganda
+    if st.session_state.admin_step == 1:
+        st.info("Deteksi akses administrator. Masukkan verifikasi lapis pertama.")
+        with st.form("form_verif_1"):
+            v1 = st.text_input("Password Lapis 1 (123):", type="password")
+            if st.form_submit_button("Lanjutkan"):
+                if v1 == "123":
+                    st.session_state.admin_step = 2
+                    st.rerun()
+                else:
+                    st.error("Password lapis pertama salah.")
+                    st.session_state.admin_step = 0
+                    
+    elif st.session_state.admin_step == 2:
+        st.info("Verifikasi lapis kedua diperlukan.")
+        with st.form("form_verif_2"):
+            v2 = st.text_input("Password Lapis 2 (321):", type="password")
+            if st.form_submit_button("Masuk Admin"):
+                if v2 == "321":
+                    st.session_state.is_admin = True
+                    st.session_state.admin_step = 0
+                    st.session_state.menu = "AdminDashboard"
+                    st.success("Verifikasi sukses! Mengalihkan ke halaman admin.")
+                    st.rerun()
+                else:
+                    st.error("Password lapis kedua salah.")
+                    st.session_state.admin_step = 0
+    else:
+        with st.form("form_user_login"):
+            u_name = st.text_input("Username")
+            u_pass = st.text_input("Password", type="password")
+            if st.form_submit_button("Masuk"):
+                # Cek jika memasukkan username admin dan password admin
+                if u_name == "admin" and u_pass == "admin":
+                    st.session_state.admin_step = 1
+                    st.rerun()
+                else:
+                    registered = db["users_terdaftar"]
+                    if u_name in registered and registered[u_name] == u_pass:
+                        st.session_state.logged_in_user = u_name
+                        st.success(f"Berhasil masuk sebagai {u_name}. Silakan buka menu 'Koleksi Novel'.")
+                    else:
+                        st.error("Username atau Password salah.")
 
-# 3. ADMIN DASHBOARD (Proteksi Ketat)
+# 3. ADMIN DASHBOARD
 elif st.session_state.menu == "AdminDashboard":
     if not st.session_state.is_admin:
-        st.error("Akses ditolak! Halaman ini bersifat rahasia dan khusus administrator.")
-        if st.button("Kembali ke Beranda Utama"):
+        st.error("Akses ditolak! Halaman ini bersifat rahasia.")
+        if st.button("Kembali ke Beranda"):
             st.session_state.menu = "Beranda"
             st.rerun()
     else:
@@ -381,21 +413,7 @@ elif st.session_state.menu == "Koleksi":
                     </div>
                 """, unsafe_allow_html=True)
 
-# 5. HALAMAN LOGIN USER
-elif st.session_state.menu == "Login":
-    st.title("User Login")
-    with st.form("form_user_login"):
-        u_name = st.text_input("Username")
-        u_pass = st.text_input("Password", type="password")
-        if st.form_submit_button("Masuk"):
-            registered = db["users_terdaftar"]
-            if u_name in registered and registered[u_name] == u_pass:
-                st.session_state.logged_in_user = u_name
-                st.success(f"Berhasil masuk sebagai {u_name}. Silakan buka menu 'Koleksi Novel'.")
-            else:
-                st.error("Username atau Password salah.")
-
-# 6. HALAMAN REGISTRASI
+# 5. HALAMAN REGISTRASI
 elif st.session_state.menu == "Registrasi":
     st.title("User Registration")
     
