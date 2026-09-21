@@ -56,49 +56,82 @@ if "show_theme_selector" not in st.session_state:
 
 db = st.session_state.db
 
-# --- PENATAAAN WARNA & TEMA (Bold di Sidebar, Soft di Utama) ---
+# --- STYLING CSS KUSTOM (MENYERUPAI APLIKASI DESKTOP) ---
 tema = db["tema"]
 if tema == "merah":
     bg_sidebar = "#18181b"
     bg_utama = "#121212"
     fg_teks = "#f3f4f6"
-    accent_color = "#ef4444"
+    accent_btn = "#dc2626"
+    box_bg = "#27272a"
 elif tema == "hijau":
     bg_sidebar = "#064e3b"
     bg_utama = "#f0fdf4"
     fg_teks = "#064e3b"
-    accent_color = "#059669"
+    accent_btn = "#059669"
+    box_bg = "#d1fae5"
 elif tema == "ungu":
     bg_sidebar = "#3b0764"
     bg_utama = "#faf5ff"
     fg_teks = "#3b0764"
-    accent_color = "#7c3aed"
+    accent_btn = "#7c3aed"
+    box_bg = "#f3e8ff"
 else: # biru
     bg_sidebar = "#0f172a"
     bg_utama = "#f4f6f8"
     fg_teks = "#1e293b"
-    accent_color = "#2563eb"
+    accent_btn = "#2563eb"
+    box_bg = "#e2e8f0"
 
 st.markdown(f"""
     <style>
+    /* Mengatur Latar Belakang Utama & Warna Teks */
     .stApp {{
         background-color: {bg_utama};
         color: {fg_teks};
+        font-family: 'Century Gothic', sans-serif;
     }}
+    
+    /* Mengatur Sidebar agar Bold & Elegan */
     [data-testid="stSidebar"] {{
         background-color: {bg_sidebar};
+        padding-top: 20px;
     }}
     [data-testid="stSidebar"] * {{
         color: #ffffff !important;
+        font-family: 'Century Gothic', sans-serif;
+    }}
+
+    /* Mempercantik Tombol (Button) */
+    div.stButton > button {{
+        background-color: {accent_btn};
+        color: white;
+        border-radius: 6px;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }}
+    div.stButton > button:hover {{
+        opacity: 0.85;
+        border-color: transparent;
+    }}
+
+    /* Mempercantik Input Teks & Text Area */
+    input, textarea {{
+        background-color: {box_bg} !important;
+        color: {fg_teks} !important;
+        border-radius: 6px !important;
     }}
     </style>
 """, unsafe_allow_html=True)
 
-# --- SIDEBAR MENU (Elegan & Simple) ---
-st.sidebar.markdown("<h2 style='text-align: center; color: white;'>NovelNest</h2>", unsafe_allow_html=True)
+# --- SIDEBAR MENU (ELEGAN & SIMPLE) ---
+st.sidebar.markdown("<h1 style='text-align: center; font-size: 24px; font-weight: bold;'>NovelNest</h1>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
 
-menu_pilihan = st.sidebar.radio("NAVIGASI", ["Beranda", "Masuk (Login)", "Registrasi Akun", "Koleksi Novel"])
+menu_pilihan = st.sidebar.radio("NAVIGASI MENU", ["Beranda", "Masuk (Login)", "Registrasi Akun", "Koleksi Novel"])
 
 st.sidebar.markdown("---")
 
@@ -115,7 +148,7 @@ if st.session_state.show_theme_selector:
         simpan_data(db)
         st.rerun()
 
-# --- HALAMAN BERANDA (Minimalis & Rahasia Admin) ---
+# --- HALAMAN BERANDA (MINIMALIS & RAHASIA ADMIN) ---
 if st.session_state.menu == "AdminLogin":
     st.title("ADMIN ACCESS")
     with st.form("form_admin_login"):
@@ -225,13 +258,13 @@ elif st.session_state.menu == "AdminDashboard" or st.session_state.is_admin:
 
 elif menu_pilihan == "Beranda":
     # Tombol Tersembunyi di Judul Beranda untuk Mengakses Halaman Admin
-    if st.button("✨ Selamat Datang di NovelNest (Klik di sini untuk Akses Admin Rahasia)", use_container_width=True):
+    if st.button("✨ NovelNest (Akses Admin Rahasia)", use_container_width=True):
         st.session_state.menu = "AdminLogin"
         st.rerun()
         
     st.markdown("<p style='text-align: center; font-style: italic; color: gray; margin-top: 20px;'>Rumah digital bagi para reader yang suka membaca hal-hal seru</p>", unsafe_allow_html=True)
 
-# --- HALAMAN KOLEKSI NOVEL (Perlu Login) ---
+# --- HALAMAN KOLEKSI NOVEL (PERLU LOGIN) ---
 elif menu_pilihan == "Koleksi Novel":
     if not st.session_state.logged_in_user:
         st.warning("⚠️ Anda harus masuk (login) terlebih dahulu untuk mengakses dan membaca koleksi novel!")
