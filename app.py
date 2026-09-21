@@ -522,7 +522,7 @@ elif navigasi == "Admin Dashboard":
                 )
 
                 st.markdown(
-                    "**Bab Terdaftar:**"
+                    "**Bab Terdaftar & Pengaturan:**"
                 )
 
                 if not target_n["babad"]:
@@ -530,14 +530,36 @@ elif navigasi == "Admin Dashboard":
                         "Belum ada bab."
                     )
                 else:
-                    for b_item in target_n["babad"]:
-                        st.write(
-                            f"- {b_item['nama_bab']}"
-                        )
+                    for b_idx, b_item in enumerate(target_n["babad"]):
+                        with st.expander(f"{b_item['nama_bab']}"):
+                            with st.form(f"form_edit_bab_{b_idx}"):
+                                edit_nama_b = st.text_input("Judul Bab", value=b_item['nama_bab'])
+                                edit_isi_b = st.text_area("Isi Cerita Lengkap", value=b_item['isi'], height=150)
+                                
+                                col_b1, col_b2 = st.columns(2)
+                                simpan_edit = col_b1.form_submit_button("Simpan Perubahan")
+                                hapus_bab_btn = col_b2.form_submit_button("Hapus Bab Ini")
+                                
+                                if simpan_edit:
+                                    if edit_nama_b and edit_isi_b:
+                                        b_item['nama_bab'] = edit_nama_b
+                                        b_item['isi'] = edit_isi_b
+                                        simpan_data(db)
+                                        st.success("Bab berhasil diperbarui.")
+                                        st.rerun()
+                                    else:
+                                        st.warning("Judul bab dan isi cerita wajib diisi.")
+                                        
+                                if hapus_bab_btn:
+                                    target_n['babad'].remove(b_item)
+                                    simpan_data(db)
+                                    st.success("Bab berhasil dihapus.")
+                                    st.rerun()
 
                 st.markdown("---")
 
                 with st.form("tambah_bab_form"):
+                    st.subheader("Tambah Bab Baru")
                     nama_b = st.text_input(
                         "Nama Bab (Contoh: Bab 1)"
                     )
@@ -555,7 +577,8 @@ elif navigasi == "Admin Dashboard":
                                 {
                                     "nama_bab": nama_b,
                                     "isi": isi_b,
-                                    "komentar": []
+                                    "komentar": [],
+                                    "balasan": []
                                 }
                             )
 
@@ -851,7 +874,6 @@ elif navigasi == "Koleksi Novel":
                             unsafe_allow_html=True
                         )
 
-                        # Menampilkan daftar balasan (replies)
                         for idx_b_kom, bal in enumerate(kom["balasan"]):
                             st.markdown(
                                 f"""
@@ -869,7 +891,6 @@ elif navigasi == "Koleksi Novel":
                                 unsafe_allow_html=True
                             )
 
-                        # Form / Tombol Balas Komentar
                         with st.form(f"form_balas_{idx_k}"):
                             pesan_balasan = st.text_input("Balas komentar ini...", key=f"input_balas_{idx_k}")
                             if st.form_submit_button("Kirim Balasan"):
