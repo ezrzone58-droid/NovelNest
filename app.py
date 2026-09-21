@@ -24,7 +24,8 @@ def muat_data():
                     "users_terdaftar": data.get(
                         "users_terdaftar",
                         {"admin": "admin"}
-                    )
+                    ),
+                    "current_session": data.get("current_session", None)
                 }
 
         except Exception as e:
@@ -34,7 +35,8 @@ def muat_data():
         "tema": "biru",
         "daftar_novel": [],
         "antrian_registrasi": [],
-        "users_terdaftar": {"admin": "admin"}
+        "users_terdaftar": {"admin": "admin"},
+        "current_session": None
     }
 
 def simpan_data(data):
@@ -48,6 +50,10 @@ def simpan_data(data):
 if "db" not in st.session_state:
     st.session_state.db = muat_data()
 
+# Sinkronkan session login dari database jika belum ada di session_state
+if "logged_in_user" not in st.session_state:
+    st.session_state.logged_in_user = st.session_state.db.get("current_session", None)
+
 if "menu" not in st.session_state:
     st.session_state.menu = "Beranda"
 
@@ -56,9 +62,6 @@ if "selected_novel" not in st.session_state:
 
 if "selected_bab" not in st.session_state:
     st.session_state.selected_bab = None
-
-if "logged_in_user" not in st.session_state:
-    st.session_state.logged_in_user = None
 
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
@@ -218,6 +221,25 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
+# Indikator status login di sidebar
+if st.session_state.logged_in_user:
+    st.sidebar.markdown(
+        f"""
+        <div style="background-color: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; text-align: center; margin-bottom: 10px;">
+            <span style="font-size: 12px;">Masuk sebagai:</span><br>
+            <strong>{st.session_state.logged_in_user}</strong>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    if st.sidebar.button("🚪 Keluar (Logout)"):
+        st.session_state.logged_in_user = None
+        st.session_state.is_admin = False
+        db["current_session"] = None
+        simpan_data(db)
+        st.success("Berhasil keluar.")
+        st.rerun()
+
 st.sidebar.markdown("---")
 
 st.sidebar.markdown(
@@ -329,86 +351,92 @@ if navigasi == "Beranda":
 elif navigasi == "Masuk (Login)":
     st.title("User Login")
 
-    if st.session_state.admin_step == 1:
-        st.info(
-            "Deteksi akses administrator. "
-            "Masukkan verifikasi lapis pertama."
-        )
-
-        with st.form("form_verif_1"):
-            v1 = st.text_input(
-                "Password Lapis 1 (123):",
-                type="password"
-            )
-
-            if st.form_submit_button("Lanjutkan"):
-                if v1 == "123":
-                    st.session_state.admin_step = 2
-                    st.rerun()
-                else:
-                    st.error(
-                        "Password lapis pertama salah."
-                    )
-                    st.session_state.admin_step = 0
-
-    elif st.session_state.admin_step == 2:
-        st.info(
-            "Verifikasi lapis kedua diperlukan."
-        )
-
-        with st.form("form_verif_2"):
-            v2 = st.text_input(
-                "Password Lapis 2 (321):",
-                type="password"
-            )
-
-            if st.form_submit_button("Masuk Admin"):
-                if v2 == "321":
-                    st.session_state.is_admin = True
-                    st.session_state.admin_step = 0
-
-                    st.success(
-                        "Verifikasi sukses! "
-                        "Silakan pilih menu Admin Dashboard di sidebar."
-                    )
-
-                    st.rerun()
-                else:
-                    st.error(
-                        "Password lapis kedua salah."
-                    )
-                    st.session_state.admin_step = 0
-
+    if st.session_state.logged_in_user:
+        st.info(f"Anda sudah masuk sebagai **{st.session_state.logged_in_user}**. Silakan buka menu **Koleksi Novel** atau klik tombol Logout di sidebar jika ingin berganti akun.")
     else:
-        with st.form("form_user_login"):
-            u_name = st.text_input("Username")
-
-            u_pass = st.text_input(
-                "Password",
-                type="password"
+        if st.session_state.admin_step == 1:
+            st.info(
+                "Deteksi akses administrator. "
+                "Masukkan verifikasi lapis pertama."
             )
 
-            if st.form_submit_button("Masuk"):
-                if u_name == "admin" and u_pass == "admin":
-                    st.session_state.admin_step = 1
-                    st.rerun()
-                else:
-                    registered = db["users_terdaftar"]
+            with st.form("form_verif_1"):
+                v1 = st.text_input(
+                    "Password Lapis 1 (123):",
+                    type="password"
+                )
 
-                    if (
-                        u_name in registered
-                        and registered[u_name] == u_pass
-                    ):
-                        st.session_state.logged_in_user = u_name
-
-                        st.success(
-                            f"Berhasil masuk sebagai {u_name}. "
-                            "Silakan buka menu 'Koleksi Novel'."
-                        )
+                if st.form_submit_button("Lanjutkan"):
+                    if v1 == "123":
+                        st.session_state.admin_step = 2
+                        st.rerun()
                     else:
                         st.error(
-                            "Username atau Password salah."
+                            "Password lapis pertama salah."
                         )
+                        st.session_state.admin_step = 0
+
+        elif st.session_state.admin_step == 2:
+            st.info(
+                "Verifikasi lapis kedua diperlukan."
+            )
+
+            with st.form("form_verif_2"):
+                v2 = st.text_input(
+                    "Password Lapis 2 (321):",
+                    type="password"
+                )
+
+                if st.form_submit_button("Masuk Admin"):
+                    if v2 == "321":
+                        st.session_state.is_admin = True
+                        st.session_state.admin_step = 0
+
+                        st.success(
+                            "Verifikasi sukses! "
+                            "Silakan pilih menu Admin Dashboard di sidebar."
+                        )
+
+                        st.rerun()
+                    else:
+                        st.error(
+                            "Password lapis kedua salah."
+                        )
+                        st.session_state.admin_step = 0
+
+        else:
+            with st.form("form_user_login"):
+                u_name = st.text_input("Username")
+
+                u_pass = st.text_input(
+                    "Password",
+                    type="password"
+                )
+
+                if st.form_submit_button("Masuk"):
+                    if u_name == "admin" and u_pass == "admin":
+                        st.session_state.admin_step = 1
+                        st.rerun()
+                    else:
+                        registered = db["users_terdaftar"]
+
+                        if (
+                            u_name in registered
+                            and registered[u_name] == u_pass
+                        ):
+                            st.session_state.logged_in_user = u_name
+                            db["current_session"] = u_name
+                            simpan_data(db)
+
+                            st.success(
+                                f"Berhasil masuk sebagai {u_name}. "
+                                "Silakan buka menu 'Koleksi Novel'."
+                            )
+                            st.rerun()
+                        else:
+                            st.error(
+                                "Username atau Password salah."
+                            )
 
 elif navigasi == "Admin Dashboard":
     if not st.session_state.is_admin:
@@ -670,6 +698,9 @@ elif navigasi == "Admin Dashboard":
                             
                     if col_u3.button("Hapus Akun", key=f"btn_del_usr_{usr}"):
                         del db["users_terdaftar"][usr]
+                        if db.get("current_session") == usr:
+                            db["current_session"] = None
+                            st.session_state.logged_in_user = None
                         simpan_data(db)
                         st.success(f"Akun {usr} berhasil dihapus.")
                         st.rerun()
