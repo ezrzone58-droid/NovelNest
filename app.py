@@ -103,7 +103,17 @@ st.markdown(f"""
     }}
     [data-testid="stSidebar"] {{
         background-color: {bg_sidebar};
-        padding-top: 15px;
+        padding-top: 0px !important;
+    }}
+    /* Teknik Penutupan (Masking): Menutup area paling atas sidebar tempat teks nyasar muncul */
+    [data-testid="stSidebar"]::before {{
+        content: "";
+        display: block;
+        height: 45px;
+        background-color: {bg_sidebar};
+        width: 100%;
+        position: relative;
+        z-index: 999;
     }}
     [data-testid="stSidebar"] * {{
         color: #ffffff !important;
@@ -131,7 +141,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-st.sidebar.markdown("<h2 style='text-align: center; letter-spacing: 1px; font-weight: 700;'>NovelNest</h2>", unsafe_allow_html=True)
+st.sidebar.markdown("<h2 style='text-align: center; letter-spacing: 1px; font-weight: 700; margin-top: -10px;'>NovelNest</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"<p style='font-size: 11px; color: #cbd5e1; text-transform: uppercase; font-weight: 600;'>Menu Navigasi</p>", unsafe_allow_html=True)
 
