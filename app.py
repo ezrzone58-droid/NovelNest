@@ -6,7 +6,7 @@ st.set_page_config(
     page_title="NovelNest - Web Edition",
     page_icon="📚",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 FILE_DATABASE = "novelnest_data.json"
@@ -117,40 +117,11 @@ st.markdown(
 
     [data-testid="stSidebar"] {{
         background-color: {bg_sidebar};
-        padding-top: 0px !important;
-    }}
-
-    [data-testid="stSidebar"]::before {{
-        content: "";
-        display: block;
-        height: 45px;
-        background-color: {bg_sidebar};
-        width: 100%;
-        position: relative;
-        z-index: 999;
-    }}
-
-    [data-testid="stSidebarCollapseButton"] .material-icons,
-    [data-testid="stSidebarCollapseButton"] .material-symbols-rounded,
-    [data-testid="stSidebarCollapseButton"] .material-symbols-outlined,
-    [data-testid="stSidebarCollapseButton"] .material-symbols-sharp {{
-        font-size: 0 !important;
-        line-height: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        overflow: hidden !important;
-        visibility: hidden !important;
-    }}
-
-    [data-testid="stSidebarCollapseButton"] span {{
-        font-size: 0 !important;
-        line-height: 0 !important;
-        overflow: hidden !important;
+        padding-top: 15px !important;
     }}
 
     [data-testid="stSidebarCollapseButton"] {{
-        min-width: 40px !important;
-        min-height: 40px !important;
+        display: none !important;
     }}
 
     [data-testid="stSidebar"] * {{
@@ -207,7 +178,6 @@ st.sidebar.markdown(
         text-align: center;
         letter-spacing: 1px;
         font-weight: 700;
-        margin-top: -10px;
     ">
         NovelNest
     </h2>
