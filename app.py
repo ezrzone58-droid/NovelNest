@@ -807,7 +807,8 @@ elif navigasi == "Koleksi Novel":
                                     ),
                                     "pesan": (
                                         isi_komentar.strip()
-                                    )
+                                    ),
+                                    "balasan": []
                                 }
                             )
 
@@ -830,14 +831,17 @@ elif navigasi == "Koleksi Novel":
                     )
 
                 else:
-                    for kom in current_bab["komentar"]:
+                    for idx_k, kom in enumerate(current_bab["komentar"]):
+                        if "balasan" not in kom:
+                            kom["balasan"] = []
+                            
                         st.markdown(
                             f"""
                             <div style="
                                 background-color: {box_bg};
-                                padding: 10px;
+                                padding: 12px;
                                 border-radius: 6px;
-                                margin-bottom: 8px;
+                                margin-bottom: 10px;
                             ">
                                 <strong>{kom['user']}</strong>
                                 <br>
@@ -846,6 +850,40 @@ elif navigasi == "Koleksi Novel":
                             """,
                             unsafe_allow_html=True
                         )
+
+                        # Menampilkan daftar balasan (replies)
+                        for idx_b_kom, bal in enumerate(kom["balasan"]):
+                            st.markdown(
+                                f"""
+                                <div style="
+                                    background-color: rgba(0,0,0,0.05);
+                                    padding: 8px 10px;
+                                    border-radius: 6px;
+                                    margin-left: 30px;
+                                    margin-bottom: 6px;
+                                    border-left: 3px solid {accent_btn};
+                                ">
+                                    <span style="font-size: 13px;">↳ <strong>{bal['user']}</strong>: {bal['pesan']}</span>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+
+                        # Form / Tombol Balas Komentar
+                        with st.form(f"form_balas_{idx_k}"):
+                            pesan_balasan = st.text_input("Balas komentar ini...", key=f"input_balas_{idx_k}")
+                            if st.form_submit_button("Kirim Balasan"):
+                                if pesan_balasan.strip():
+                                    kom["balasan"].append({
+                                        "user": st.session_state.logged_in_user,
+                                        "pesan": pesan_balasan.strip()
+                                    })
+                                    simpan_data(db)
+                                    st.success("Balasan berhasil dikirim.")
+                                    st.rerun()
+                                else:
+                                    st.warning("Balasan tidak boleh kosong.")
+                        st.markdown("---")
 
 elif navigasi == "Registrasi Akun":
     st.title("User Registration")
