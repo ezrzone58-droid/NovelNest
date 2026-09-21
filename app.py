@@ -63,7 +63,6 @@ if "device_token" not in st.session_state:
         st.session_state.device_token = new_token
         st.query_params["token"] = new_token
 
-# Cek apakah device token ini punya sesi login aktif di database
 active_sessions = db.get("active_sessions", {})
 current_device_token = st.session_state.device_token
 
@@ -237,7 +236,6 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-# Indikator status login khusus perangkat ini di sidebar
 if st.session_state.logged_in_user:
     st.sidebar.markdown(
         f"""
@@ -379,7 +377,7 @@ elif navigasi == "Masuk (Login)":
 
             with st.form("form_verif_1"):
                 v1 = st.text_input(
-                    "Password Lapis 1 (123):",
+                    "Password Lapis 1:",
                     type="password"
                 )
 
@@ -400,7 +398,7 @@ elif navigasi == "Masuk (Login)":
 
             with st.form("form_verif_2"):
                 v2 = st.text_input(
-                    "Password Lapis 2 (321):",
+                    "Password Lapis 2:",
                     type="password"
                 )
 
@@ -715,7 +713,6 @@ elif navigasi == "Admin Dashboard":
                             
                     if col_u3.button("Hapus Akun", key=f"btn_del_usr_{usr}"):
                         del db["users_terdaftar"][usr]
-                        # Hapus sesi aktif user ini dari semua perangkat
                         db["active_sessions"] = {
                             k: v for k, v in db["active_sessions"].items() if v != usr
                         }
