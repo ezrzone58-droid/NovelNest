@@ -2,7 +2,6 @@ import streamlit as st
 import json
 import os
 
-# ==================== KONFIGURASI HALAMAN ====================
 st.set_page_config(
     page_title="NovelNest - Web Edition",
     page_icon="📚",
@@ -12,7 +11,6 @@ st.set_page_config(
 
 FILE_DATABASE = "novelnest_data.json"
 
-# ==================== MANAJEMEN DATABASE ====================
 def muat_data():
     if os.path.exists(FILE_DATABASE):
         try:
@@ -40,7 +38,6 @@ def simpan_data(data):
     except Exception as e:
         st.error(f"Gagal menyimpan data: {e}")
 
-# ==================== INISIALISASI STATE ====================
 if "db" not in st.session_state:
     st.session_state.db = muat_data()
 
@@ -60,14 +57,13 @@ if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
 if "admin_step" not in st.session_state:
-    st.session_state.admin_step = 0  # 0: Normal, 1: Verifikasi Lapis 1, 2: Verifikasi Lapis 2
+    st.session_state.admin_step = 0
 
 if "show_theme_selector" not in st.session_state:
     st.session_state.show_theme_selector = False
 
 db = st.session_state.db
 
-# ==================== Kustomisasi Tema & Font Modern ====================
 tema = db.get("tema", "biru")
 if tema == "merah":
     bg_sidebar = "#18181b"
@@ -90,7 +86,7 @@ elif tema == "ungu":
     accent_btn = "#7c3aed"
     box_bg = "#f3e8ff"
     muted_color = "#581c87"
-else:  # biru
+else:
     bg_sidebar = "#0f172a"
     bg_utama = "#f4f6f8"
     fg_teks = "#0f172a"
@@ -100,6 +96,9 @@ else:  # biru
 
 st.markdown(f"""
     <style>
+    section[data-testid="stSidebar"] div.stButton button svg {{
+        display: none !important;
+    }}
     .stApp {{
         background-color: {bg_utama};
         color: {fg_teks};
@@ -113,7 +112,6 @@ st.markdown(f"""
         color: #ffffff !important;
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
-    /* Tombol Navigasi Sidebar Modern & Elegan */
     [data-testid="stSidebar"] div.stButton > button {{
         width: 100%;
         background-color: rgba(255, 255, 255, 0.08);
@@ -130,7 +128,6 @@ st.markdown(f"""
         background-color: {accent_btn};
         border-color: transparent;
     }}
-    /* Tombol Utama Konten */
     div.stButton > button {{
         background-color: {accent_btn};
         color: white;
@@ -152,7 +149,6 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# ==================== SIDEBAR NAVIGASI ====================
 st.sidebar.markdown("<h2 style='text-align: center; letter-spacing: 1px; font-weight: 700;'>NovelNest</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"<p style='font-size: 11px; color: #cbd5e1; text-transform: uppercase; font-weight: 600;'>Menu Navigasi</p>", unsafe_allow_html=True)
@@ -188,7 +184,6 @@ if st.session_state.is_admin:
 
 st.sidebar.markdown("---")
 
-# Tombol Setting dengan Gambar Gerigi
 if st.sidebar.button("⚙️ Setting Aplikasi"):
     st.session_state.show_theme_selector = not st.session_state.show_theme_selector
 
@@ -204,9 +199,6 @@ if st.session_state.show_theme_selector:
         simpan_data(db)
         st.rerun()
 
-# ==================== KONTROL HALAMAN UTAMA ====================
-
-# 1. HALAMAN BERANDA
 if st.session_state.menu == "Beranda":
     st.markdown("<h1 style='text-align: center; font-weight: 800;'>NovelNest</h1>", unsafe_allow_html=True)
     st.markdown(f"""
@@ -217,11 +209,9 @@ if st.session_state.menu == "Beranda":
         </div>
     """, unsafe_allow_html=True)
 
-# 2. HALAMAN LOGIN & VERIFIKASI BERLAPIS ADMIN
 elif st.session_state.menu == "Login":
     st.title("User Login")
     
-    # Jika sistem mendeteksi input admin berlanjut ke verifikasi ganda
     if st.session_state.admin_step == 1:
         st.info("Deteksi akses administrator. Masukkan verifikasi lapis pertama.")
         with st.form("form_verif_1"):
@@ -253,7 +243,6 @@ elif st.session_state.menu == "Login":
             u_name = st.text_input("Username")
             u_pass = st.text_input("Password", type="password")
             if st.form_submit_button("Masuk"):
-                # Cek jika memasukkan username admin dan password admin
                 if u_name == "admin" and u_pass == "admin":
                     st.session_state.admin_step = 1
                     st.rerun()
@@ -265,7 +254,6 @@ elif st.session_state.menu == "Login":
                     else:
                         st.error("Username atau Password salah.")
 
-# 3. ADMIN DASHBOARD
 elif st.session_state.menu == "AdminDashboard":
     if not st.session_state.is_admin:
         st.error("Akses ditolak! Halaman ini bersifat rahasia.")
@@ -330,7 +318,7 @@ elif st.session_state.menu == "AdminDashboard":
                     isi_b = st.text_area("Isi Cerita Lengkap", height=150)
                     if st.form_submit_button("Simpan Bab Baru"):
                         if nama_b and isi_b:
-                            target_n['babad'].append({"nama_bab": nama_b, "isi": isi_b})
+                            target_n['babad'].append({"nama_bab": nama_b, "isi": isi_b, "komentar": []})
                             simpan_data(db)
                             st.success("Bab berhasil disimpan.")
                             st.rerun()
@@ -361,7 +349,9 @@ elif st.session_state.menu == "AdminDashboard":
                 for usr, pwd in active_users.items():
                     st.write(f"- Username: **{usr}** | Password: **{pwd}**")
 
-# 4. HALAMAN KOLEKSI NOVEL
+elif navigasi == "Koleksi":
+    pass
+
 elif st.session_state.menu == "Koleksi":
     if not st.session_state.logged_in_user:
         st.warning("Anda harus masuk (login) terlebih dahulu melalui menu 'Masuk (Login)' untuk membaca koleksi novel.")
@@ -412,8 +402,38 @@ elif st.session_state.menu == "Koleksi":
 {current_bab['isi']}
                     </div>
                 """, unsafe_allow_html=True)
+                
+                st.markdown("---")
+                st.subheader("Kolom Komentar")
+                
+                if "komentar" not in current_bab:
+                    current_bab["komentar"] = []
+                
+                with st.form("form_tambah_komentar"):
+                    isi_komentar = st.text_area("Tulis komentar Anda...")
+                    submit_komentar = st.form_submit_button("Kirim Komentar")
+                    if submit_komentar:
+                        if isi_komentar.strip():
+                            current_bab["komentar"].append({
+                                "user": st.session_state.logged_in_user,
+                                "pesan": isi_komentar.strip()
+                            })
+                            simpan_data(db)
+                            st.success("Komentar berhasil dikirim.")
+                            st.rerun()
+                        else:
+                            st.warning("Komentar tidak boleh kosong.")
+                
+                if not current_bab["komentar"]:
+                    st.info("Belum ada komentar di bab ini.")
+                else:
+                    for kom in current_bab["komentar"]:
+                        st.markdown(f"""
+                            <div style='background-color: {box_bg}; padding: 10px; border-radius: 6px; margin-bottom: 8px;'>
+                                <strong>{kom['user']}</strong><br>{kom['pesan']}
+                            </div>
+                        """, unsafe_allow_html=True)
 
-# 5. HALAMAN REGISTRASI
 elif st.session_state.menu == "Registrasi":
     st.title("User Registration")
     
