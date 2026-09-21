@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import os
+import uuid
 
 st.set_page_config(
     page_title="NovelNest - Web Edition",
@@ -25,7 +26,7 @@ def muat_data():
                         "users_terdaftar",
                         {"admin": "admin"}
                     ),
-                    "current_session": data.get("current_session", None)
+                    "active_sessions": data.get("active_sessions", {})
                 }
 
         except Exception as e:
@@ -36,7 +37,7 @@ def muat_data():
         "daftar_novel": [],
         "antrian_registrasi": [],
         "users_terdaftar": {"admin": "admin"},
-        "current_session": None
+        "active_sessions": {}
     }
 
 def simpan_data(data):
@@ -50,9 +51,26 @@ def simpan_data(data):
 if "db" not in st.session_state:
     st.session_state.db = muat_data()
 
-# Sinkronkan session login dari database jika belum ada di session_state
-if "logged_in_user" not in st.session_state:
-    st.session_state.logged_in_user = st.session_state.db.get("current_session", None)
+db = st.session_state.db
+
+# Manajemen Sesi Mandiri Per Perangkat Berdasarkan URL Query Parameters
+if "device_token" not in st.session_state:
+    params = st.query_params
+    if "token" in params:
+        st.session_state.device_token = params["token"]
+    else:
+        new_token = str(uuid.uuid4())
+        st.session_state.device_token = new_token
+        st.query_params["token"] = new_token
+
+# Cek apakah device token ini punya sesi login aktif di database
+active_sessions = db.get("active_sessions", {})
+current_device_token = st.session_state.device_token
+
+if current_device_token in active_sessions:
+    st.session_state.logged_in_user = active_sessions[current_device_token]
+else:
+    st.session_state.logged_in_user = None
 
 if "menu" not in st.session_state:
     st.session_state.menu = "Beranda"
@@ -74,8 +92,6 @@ if "show_theme_selector" not in st.session_state:
 
 if "show_panduan" not in st.session_state:
     st.session_state.show_panduan = False
-
-db = st.session_state.db
 
 tema = db.get("tema", "biru")
 
@@ -221,23 +237,24 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-# Indikator status login di sidebar
+# Indikator status login khusus perangkat ini di sidebar
 if st.session_state.logged_in_user:
     st.sidebar.markdown(
         f"""
         <div style="background-color: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; text-align: center; margin-bottom: 10px;">
-            <span style="font-size: 12px;">Masuk sebagai:</span><br>
+            <span style="font-size: 12px;">Perangkat Masuk Sebagai:</span><br>
             <strong>{st.session_state.logged_in_user}</strong>
         </div>
         """,
         unsafe_allow_html=True
     )
     if st.sidebar.button("🚪 Keluar (Logout)"):
+        if current_device_token in db["active_sessions"]:
+            del db["active_sessions"][current_device_token]
         st.session_state.logged_in_user = None
         st.session_state.is_admin = False
-        db["current_session"] = None
         simpan_data(db)
-        st.success("Berhasil keluar.")
+        st.success("Berhasil keluar pada perangkat ini.")
         st.rerun()
 
 st.sidebar.markdown("---")
@@ -352,7 +369,7 @@ elif navigasi == "Masuk (Login)":
     st.title("User Login")
 
     if st.session_state.logged_in_user:
-        st.info(f"Anda sudah masuk sebagai **{st.session_state.logged_in_user}**. Silakan buka menu **Koleksi Novel** atau klik tombol Logout di sidebar jika ingin berganti akun.")
+        st.info(f"Perangkat ini sudah masuk sebagai **{st.session_state.logged_in_user}**. Silakan buka menu **Koleksi Novel** atau klik tombol Logout di sidebar jika ingin berganti akun.")
     else:
         if st.session_state.admin_step == 1:
             st.info(
@@ -425,11 +442,11 @@ elif navigasi == "Masuk (Login)":
                             and registered[u_name] == u_pass
                         ):
                             st.session_state.logged_in_user = u_name
-                            db["current_session"] = u_name
+                            db["active_sessions"][current_device_token] = u_name
                             simpan_data(db)
 
                             st.success(
-                                f"Berhasil masuk sebagai {u_name}. "
+                                f"Berhasil masuk sebagai {u_name} di perangkat ini. "
                                 "Silakan buka menu 'Koleksi Novel'."
                             )
                             st.rerun()
@@ -698,9 +715,10 @@ elif navigasi == "Admin Dashboard":
                             
                     if col_u3.button("Hapus Akun", key=f"btn_del_usr_{usr}"):
                         del db["users_terdaftar"][usr]
-                        if db.get("current_session") == usr:
-                            db["current_session"] = None
-                            st.session_state.logged_in_user = None
+                        # Hapus sesi aktif user ini dari semua perangkat
+                        db["active_sessions"] = {
+                            k: v for k, v in db["active_sessions"].items() if v != usr
+                        }
                         simpan_data(db)
                         st.success(f"Akun {usr} berhasil dihapus.")
                         st.rerun()
