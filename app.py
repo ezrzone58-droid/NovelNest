@@ -6,7 +6,7 @@ st.set_page_config(
     page_title="NovelNest - Web Edition",
     page_icon="📚",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 FILE_DATABASE = "novelnest_data.json"
@@ -62,8 +62,8 @@ if "admin_step" not in st.session_state:
 if "show_theme_selector" not in st.session_state:
     st.session_state.show_theme_selector = False
 
-if "show_nav_modal" not in st.session_state:
-    st.session_state.show_nav_modal = False
+if "sidebar_open" not in st.session_state:
+    st.session_state.sidebar_open = True
 
 db = st.session_state.db
 
@@ -98,6 +98,8 @@ else:
     box_bg = "#e2e8f0"
     muted_color = "#334155"
 
+sidebar_display_css = "" if st.session_state.sidebar_open else '[data-testid="stSidebar"] { display: none !important; }'
+
 st.markdown(
     f"""
     <style>
@@ -106,11 +108,17 @@ st.markdown(
         color: {fg_teks};
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
+    {sidebar_display_css}
     [data-testid="stSidebar"] {{
-        display: none !important;
+        background-color: {bg_sidebar};
+        padding-top: 15px !important;
     }}
     [data-testid="collapsedControl"] {{
         display: none !important;
+    }}
+    [data-testid="stSidebar"] * {{
+        color: #ffffff !important;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
     div.stButton > button {{
         background-color: {accent_btn};
@@ -149,81 +157,75 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown(
-    f"""
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
-        <h2 style="margin: 0; font-weight: 800; letter-spacing: 1px;">NovelNest</h2>
-    </div>
+if st.button("Menu"):
+    st.session_state.sidebar_open = not st.session_state.sidebar_open
+    st.rerun()
+
+st.sidebar.markdown(
+    """
+    <h2 style="
+        text-align: center;
+        letter-spacing: 1px;
+        font-weight: 700;
+        margin-top: -10px;
+    ">
+        NovelNest
+    </h2>
     """,
     unsafe_allow_html=True
 )
 
-col_top1, col_top2 = st.columns([1, 6])
-with col_top1:
-    if st.button("Menu Navigasi"):
-        st.session_state.show_nav_modal = not st.session_state.show_nav_modal
+st.sidebar.markdown("---")
 
-if st.session_state.show_nav_modal:
-    st.markdown("---")
-    st.markdown("### Pilih Menu Navigasi")
-    
-    col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
-    
-    with col_m1:
-        if st.button("Beranda"):
-            st.session_state.menu = "Beranda"
-            st.session_state.selected_novel = None
-            st.session_state.selected_bab = None
-            st.session_state.admin_step = 0
-            st.session_state.show_nav_modal = False
-            st.rerun()
-            
-    with col_m2:
-        if st.button("Masuk (Login)"):
-            st.session_state.menu = "Login"
-            st.session_state.admin_step = 0
-            st.session_state.show_nav_modal = False
-            st.rerun()
-            
-    with col_m3:
-        if st.button("Registrasi Akun"):
-            st.session_state.menu = "Registrasi"
-            st.session_state.admin_step = 0
-            st.session_state.show_nav_modal = False
-            st.rerun()
-            
-    with col_m4:
-        if st.button("Koleksi Novel"):
-            st.session_state.menu = "Koleksi"
-            st.session_state.selected_novel = None
-            st.session_state.selected_bab = None
-            st.session_state.admin_step = 0
-            st.session_state.show_nav_modal = False
-            st.rerun()
-            
-    with col_m5:
-        if st.session_state.is_admin:
-            if st.button("Admin Dashboard"):
-                st.session_state.menu = "AdminDashboard"
-                st.session_state.show_nav_modal = False
-                st.rerun()
+st.sidebar.markdown(
+    """
+    <p style="
+        font-size: 11px;
+        color: #cbd5e1;
+        text-transform: uppercase;
+        font-weight: 600;
+    ">
+        Menu Navigasi
+    </p>
+    """,
+    unsafe_allow_html=True
+)
 
-    if st.button("⚙️ Setting Aplikasi"):
-        st.session_state.show_theme_selector = not st.session_state.show_theme_selector
+daftar_menu = ["Beranda", "Masuk (Login)", "Registrasi Akun", "Koleksi Novel"] + (["Admin Dashboard"] if st.session_state.is_admin else [])
 
-    if st.session_state.show_theme_selector:
-        st.markdown("### Pengaturan Tema")
-        pilihan_tema = st.selectbox(
-            "Pilih Tema Warna",
-            ["biru", "merah", "hijau", "ungu"],
-            index=["biru", "merah", "hijau", "ungu"].index(tema)
-        )
-        if pilihan_tema != tema:
-            db["tema"] = pilihan_tema
-            simpan_data(db)
-            st.rerun()
-            
-    st.markdown("---")
+pilihan_menu = st.sidebar.radio(
+    "Navigasi",
+    daftar_menu,
+    label_visibility="collapsed"
+)
+
+if pilihan_menu == "Beranda":
+    st.session_state.menu = "Beranda"
+elif pilihan_menu == "Masuk (Login)":
+    st.session_state.menu = "Login"
+elif pilihan_menu == "Registrasi Akun":
+    st.session_state.menu = "Registrasi"
+elif pilihan_menu == "Koleksi Novel":
+    st.session_state.menu = "Koleksi"
+elif pilihan_menu == "Admin Dashboard":
+    st.session_state.menu = "AdminDashboard"
+
+st.sidebar.markdown("---")
+
+if st.sidebar.button("⚙️ Setting Aplikasi"):
+    st.session_state.show_theme_selector = not st.session_state.show_theme_selector
+
+if st.session_state.show_theme_selector:
+    st.sidebar.markdown("### Pengaturan Tema")
+    pilihan_tema = st.sidebar.selectbox(
+        "Pilih Tema Warna",
+        ["biru", "merah", "hijau", "ungu"],
+        index=["biru", "merah", "hijau", "ungu"].index(tema)
+    )
+    if pilihan_tema != tema:
+        db["tema"] = pilihan_tema
+        simpan_data(db)
+        st.rerun()
 
 if st.session_state.menu == "Beranda":
     st.markdown(
@@ -301,7 +303,7 @@ elif st.session_state.menu == "Login":
 
                     st.success(
                         "Verifikasi sukses! "
-                        "Silakan buka menu Admin Dashboard."
+                        "Silakan pilih menu Admin Dashboard."
                     )
 
                     st.rerun()
@@ -820,7 +822,7 @@ elif st.session_state.menu == "Registrasi":
                                 "id": id_temp,
                                 "kode": "",
                                 "username": "",
-                                "password": ""
+                                "password": "",
                             }
                         )
 
