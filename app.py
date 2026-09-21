@@ -416,7 +416,7 @@ elif navigasi == "Registrasi Akun":
                 target_q = next((x for x in db["antrian_registrasi"] if x['id'] == inp_id), None)
                 if not target_q:
                     st.error("ID tidak ditemukan dalam antrean registrasi.")
-                elif target_q.get('kode'] != inp_kode:
+                elif target_q.get('kode') != inp_kode:
                     st.error("Kode verifikasi salah atau belum dikirimkan oleh admin.")
                 elif inp_new_u in db["users_terdaftar"]:
                     st.error("Username tersebut sudah digunakan orang lain.")
