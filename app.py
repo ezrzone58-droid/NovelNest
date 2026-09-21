@@ -272,36 +272,26 @@ if st.session_state.show_theme_selector:
     if st.sidebar.button("📖 Cara Login & Registrasi"):
         st.session_state.show_panduan = not st.session_state.show_panduan
 
-if st.session_state.show_panduan:
-    st.markdown("---")
-    st.subheader("Panduan Lengkap Registrasi dan Login")
-    st.markdown(
-        f"""
-        <div style="
-            background-color: {box_bg};
-            color: {fg_teks};
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        ">
-            <ol>
-                <li><strong>Tahap 1: Pengajuan ID Sementara</strong><br>
-                Buka menu <strong>Registrasi Akun</strong>, pilih tab pertama (Ajukan ID Sementara), masukkan ID bebas yang Anda inginkan, lalu klik tombol kirim pengajuan.</li>
-                <br>
-                <li><strong>Tahap 2: Mendapatkan Kode Admin</strong><br>
-                Berikan ID sementara tersebut kepada Admin agar Admin dapat memasukkan dan mengirimkan kode verifikasi khusus ke dalam sistem antrean.</li>
-                <br>
-                <li><strong>Tahap 3: Aktivasi Akun</strong><br>
-                Masuk kembali ke menu <strong>Registrasi Akun</strong>, pilih tab kedua (Aktivasi Akun & Ubah Profil), masukkan ID Anda, kode verifikasi dari admin, serta buat Username dan Password baru Anda. Selesai!</li>
-                <br>
-                <li><strong>Tahap 4: Masuk (Login)</strong><br>
-                Buka menu <strong>Masuk (Login)</strong>, masukkan Username dan Password yang baru saja Anda daftarkan untuk mulai membaca dan menulis komentar pada koleksi novel.</li>
-            </ol>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    if st.session_state.show_panduan:
+        st.sidebar.markdown(
+            f"""
+            <div style="
+                background-color: rgba(255, 255, 255, 0.1);
+                color: #ffffff;
+                padding: 12px;
+                border-radius: 6px;
+                margin-top: 10px;
+                font-size: 13px;
+                line-height: 1.5;
+            ">
+                <strong>Panduan Singkat:</strong><br><br>
+                1. <strong>Registrasi</strong>: Masuk ke menu Registrasi Akun, ajukan ID sementara, lalu minta kode verifikasi ke Admin.<br><br>
+                2. <strong>Aktivasi</strong>: Masukkan ID dan kode admin di tab aktivasi untuk membuat username & password.<br><br>
+                3. <strong>Login</strong>: Gunakan akun baru Anda pada menu Masuk (Login) untuk mulai membaca novel.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 if navigasi == "Beranda":
     st.markdown(
