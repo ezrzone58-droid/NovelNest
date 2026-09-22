@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import os
+import uuid
 
 st.set_page_config(
     page_title="NovelNest - Web Edition",
@@ -24,7 +25,8 @@ def muat_data():
                     "users_terdaftar": data.get(
                         "users_terdaftar",
                         {"admin": "admin"}
-                    )
+                    ),
+                    "active_sessions": data.get("active_sessions", {})
                 }
 
         except Exception as e:
@@ -34,7 +36,8 @@ def muat_data():
         "tema": "biru",
         "daftar_novel": [],
         "antrian_registrasi": [],
-        "users_terdaftar": {"admin": "admin"}
+        "users_terdaftar": {"admin": "admin"},
+        "active_sessions": {}
     }
 
 def simpan_data(data):
@@ -48,7 +51,24 @@ def simpan_data(data):
 if "db" not in st.session_state:
     st.session_state.db = muat_data()
 
-if "logged_in_user" not in st.session_state:
+db = st.session_state.db
+
+# Manajemen Sesi Perangkat Berbasis URL Token agar tidak perlu login ulang saat refresh/pindah menu
+if "device_token" not in st.session_state:
+    params = st.query_params
+    if "token" in params:
+        st.session_state.device_token = params["token"]
+    else:
+        new_token = str(uuid.uuid4())
+        st.session_state.device_token = new_token
+        st.query_params["token"] = new_token
+
+active_sessions = db.get("active_sessions", {})
+current_device_token = st.session_state.device_token
+
+if current_device_token in active_sessions:
+    st.session_state.logged_in_user = active_sessions[current_device_token]
+else:
     st.session_state.logged_in_user = None
 
 if "menu" not in st.session_state:
@@ -72,7 +92,6 @@ if "show_theme_selector" not in st.session_state:
 if "show_panduan" not in st.session_state:
     st.session_state.show_panduan = False
 
-db = st.session_state.db
 tema = db.get("tema", "biru")
 
 if tema == "merah":
@@ -228,6 +247,9 @@ if st.session_state.logged_in_user:
         unsafe_allow_html=True
     )
     if st.sidebar.button("🚪 Keluar (Logout)"):
+        if current_device_token in db.get("active_sessions", {}):
+            del db["active_sessions"][current_device_token]
+            simpan_data(db)
         st.session_state.logged_in_user = None
         st.session_state.is_admin = False
         st.success("Berhasil keluar.")
@@ -418,6 +440,8 @@ elif navigasi == "Masuk (Login)":
                             and registered[u_name] == u_pass
                         ):
                             st.session_state.logged_in_user = u_name
+                            db.setdefault("active_sessions", {})[current_device_token] = u_name
+                            simpan_data(db)
 
                             st.success(
                                 f"Berhasil masuk sebagai {u_name}. "
@@ -437,9 +461,20 @@ elif navigasi == "Admin Dashboard":
     else:
         st.title("Admin Dashboard")
 
-        if st.button("Keluar dari Mode Admin"):
-            st.session_state.is_admin = False
-            st.rerun()
+        # Pilihan pengaturan keluar atau pertahankan mode admin saat restart
+        col_adm_ctrl1, col_adm_ctrl2 = st.columns(2)
+        with col_adm_ctrl1:
+            if st.button("🚪 Keluar Sepenuhnya dari Admin"):
+                st.session_state.is_admin = False
+                st.success("Berhasil keluar dari mode admin.")
+                st.rerun()
+        with col_adm_ctrl2:
+            if st.button("🔄 Muat Ulang Dashboard (Pertahankan Admin)"):
+                st.session_state.db = muat_data()
+                st.success("Dashboard dimuat ulang, status admin dipertahankan!")
+                st.rerun()
+
+        st.markdown("---")
 
         tab_a, tab_b, tab_c = st.tabs(
             [
@@ -703,6 +738,9 @@ elif navigasi == "Admin Dashboard":
                             
                     if col_u3.button("Hapus Akun", key=f"btn_del_usr_{usr}"):
                         del db["users_terdaftar"][usr]
+                        db["active_sessions"] = {
+                            k: v for k, v in db["active_sessions"].items() if v != usr
+                        }
                         simpan_data(db)
                         st.success(f"Akun {usr} berhasil dihapus.")
                         st.rerun()
