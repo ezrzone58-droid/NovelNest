@@ -150,12 +150,10 @@ st.markdown(
         border: 2px solid #2563eb !important;
         font-weight: 600 !important;
     }}
-    /* Placeholder agar tetap terbaca kontras */
     input::placeholder, textarea::placeholder {{
         color: #4b5563 !important;
         opacity: 1 !important;
     }}
-    /* Kontras untuk Selectbox / Dropdown */
     div[data-baseweb="select"] > div {{
         background-color: #ffffff !important;
         color: #000000 !important;
@@ -342,42 +340,15 @@ if st.session_state.is_admin:
 else:
     # ==================== HALAMAN UTAMA (LANDING PAGE) ====================
     if st.session_state.menu == "Utama":
-        st.markdown(
-            """
-            <div style="text-align: center; padding: 50px 20px 20px 20px;">
-                <h1 style="font-weight: 800; font-size: 48px; margin-bottom: 10px;">NovelNest</h1>
-                <p style="font-size: 18px; font-style: italic; color: #94a3b8; font-weight: 500; max-width: 600px; margin: 0 auto 30px auto;">
-                    Rumah digital bagi para pembaca untuk menikmati berbagai cerita menarik, berdiskusi, dan menjelajahi bab-bab seru.
-                </p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        col_space1, col_center, col_space2 = st.columns([1, 2, 1])
-        with col_center:
-            # 3. Tombol Masuk
-            if st.button("🔑 Masuk"):
-                st.session_state.menu = "Login"
-                st.rerun()
-            
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            
-            # 4. Tombol Registrasi
-            if st.button("📝 Registrasi"):
-                st.session_state.menu = "Registrasi"
-                st.rerun()
-            
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            
-            # 5. Tombol Setting
-            if st.button("⚙️ Setting"):
+        # Tombol Setting di Kiri Atas
+        col_top_left, col_top_right = st.columns([1, 5])
+        with col_top_left:
+            if st.button("⚙️"):
                 st.session_state.show_theme_modal = not st.session_state.show_theme_modal
                 st.rerun()
 
         if st.session_state.show_theme_modal:
-            st.markdown("---")
-            st.subheader("Pengaturan Tema Aplikasi")
+            st.markdown("### Pengaturan Tema Aplikasi")
             pilihan_tema = st.selectbox(
                 "Pilih Tema Warna",
                 ["biru", "merah", "hijau", "ungu"],
@@ -386,6 +357,30 @@ else:
             if pilihan_tema != tema:
                 db["tema"] = pilihan_tema
                 simpan_data(db)
+                st.rerun()
+            st.markdown("---")
+
+        st.markdown(
+            """
+            <div style="text-align: center; padding: 40px 20px 20px 20px;">
+                <h1 style="font-weight: 800; font-size: 48px; margin-bottom: 10px;">NovelNest</h1>
+                <p style="font-size: 18px; font-style: italic; color: #94a3b8; font-weight: 500; max-width: 600px; margin: 0 auto 35px auto;">
+                    Rumah digital bagi para pembaca untuk menikmati berbagai cerita menarik, berdiskusi, dan menjelajahi bab-bab seru.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # Dua tombol di tengah, sejajar, dan berukuran sama berdampingan
+        col_space_l, col_btn1, col_btn2, col_space_r = st.columns([1, 1.5, 1.5, 1])
+        with col_btn1:
+            if st.button("🔑 Masuk", use_container_width=True):
+                st.session_state.menu = "Login"
+                st.rerun()
+        with col_btn2:
+            if st.button("📝 Registrasi", use_container_width=True):
+                st.session_state.menu = "Registrasi"
                 st.rerun()
 
     # ==================== HALAMAN LOGIN ====================
