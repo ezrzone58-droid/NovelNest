@@ -7,7 +7,7 @@ st.set_page_config(
     page_title="NovelNest - Web Edition",
     page_icon="📚",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 FILE_DATABASE = "novelnest_data.json"
@@ -71,7 +71,7 @@ else:
     st.session_state.logged_in_user = None
 
 if "menu" not in st.session_state:
-    st.session_state.menu = "Masuk (Login)"
+    st.session_state.menu = "Utama"
 
 if "selected_novel" not in st.session_state:
     st.session_state.selected_novel = None
@@ -85,11 +85,8 @@ if "is_admin" not in st.session_state:
 if "admin_step" not in st.session_state:
     st.session_state.admin_step = 0
 
-if "show_theme_selector" not in st.session_state:
-    st.session_state.show_theme_selector = False
-
-if "show_panduan" not in st.session_state:
-    st.session_state.show_panduan = False
+if "show_theme_modal" not in st.session_state:
+    st.session_state.show_theme_modal = False
 
 if "aktivasi_step" not in st.session_state:
     st.session_state.aktivasi_step = "input_id"
@@ -100,28 +97,24 @@ if "temp_validated_id" not in st.session_state:
 tema = db.get("tema", "biru")
 
 if tema == "merah":
-    bg_sidebar = "#18181b"
     bg_utama = "#121212"
     fg_teks = "#f3f4f6"
     accent_btn = "#dc2626"
     box_bg = "#27272a"
     muted_color = "#d1d5db"
 elif tema == "hijau":
-    bg_sidebar = "#064e3b"
     bg_utama = "#f0fdf4"
     fg_teks = "#022c22"
     accent_btn = "#059669"
     box_bg = "#d1fae5"
     muted_color = "#065f46"
 elif tema == "ungu":
-    bg_sidebar = "#3b0764"
     bg_utama = "#faf5ff"
     fg_teks = "#2e1065"
     accent_btn = "#7c3aed"
     box_bg = "#f3e8ff"
     muted_color = "#581c87"
 else:
-    bg_sidebar = "#0f172a"
     bg_utama = "#f4f6f8"
     fg_teks = "#0f172a"
     accent_btn = "#2563eb"
@@ -136,40 +129,12 @@ st.markdown(
         color: {fg_teks};
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
-    [data-testid="stSidebar"] {{
-        background-color: {bg_sidebar};
-        padding-top: 0px !important;
-    }}
-    [data-testid="stSidebar"]::before {{
-        content: "";
-        display: block;
-        height: 45px;
-        background-color: {bg_sidebar};
-        width: 100%;
-        position: relative;
-        z-index: 999;
-    }}
-    [data-testid="stSidebarCollapseButton"] .material-icons,
-    [data-testid="stSidebarCollapseButton"] .material-symbols-rounded,
-    [data-testid="stSidebarCollapseButton"] .material-symbols-outlined,
-    [data-testid="stSidebarCollapseButton"] .material-symbols-sharp {{
-        font-size: 0 !important;
-        line-height: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        overflow: hidden !important;
-        visibility: hidden !important;
-    }}
-    [data-testid="stSidebar"] * {{
-        color: #ffffff !important;
-        font-family: 'Inter', 'Segoe UI', sans-serif;
-    }}
     div.stButton > button {{
         background-color: {accent_btn};
         color: white;
         border-radius: 6px;
         border: none;
-        padding: 0.5rem 1rem;
+        padding: 0.6rem 1.2rem;
         font-weight: 600;
         width: 100%;
     }}
@@ -186,79 +151,14 @@ st.markdown(
         color: {fg_teks} !important;
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
-    div[data-baseweb="select"] > div {{
-        background-color: {box_bg} !important;
-        color: {fg_teks} !important;
-    }}
     </style>
     """,
     unsafe_allow_html=True
 )
 
-st.sidebar.markdown(
-    """
-    <h2 style="text-align: center; letter-spacing: 1px; font-weight: 700; margin-top: -10px;">
-        NovelNest
-    </h2>
-    """,
-    unsafe_allow_html=True
-)
-
-if st.session_state.logged_in_user:
-    st.sidebar.markdown(
-        f"""
-        <div style="background-color: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; text-align: center; margin-bottom: 10px;">
-            <span style="font-size: 12px;">Masuk Sebagai:</span><br>
-            <strong>{st.session_state.logged_in_user}</strong>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    if st.sidebar.button("🚪 Keluar (Logout)"):
-        if current_device_token in db.get("active_sessions", {}):
-            del db["active_sessions"][current_device_token]
-            simpan_data(db)
-        st.session_state.logged_in_user = None
-        st.session_state.is_admin = False
-        st.session_state.menu = "Masuk (Login)"
-        st.success("Berhasil keluar.")
-        st.rerun()
-
-st.sidebar.markdown("---")
-if st.sidebar.button("⚙️ Setting Aplikasi"):
-    st.session_state.show_theme_selector = not st.session_state.show_theme_selector
-
-if st.session_state.show_theme_selector:
-    st.sidebar.markdown("### Pengaturan Tema")
-    pilihan_tema = st.sidebar.selectbox(
-        "Pilih Tema Warna",
-        ["biru", "merah", "hijau", "ungu"],
-        index=["biru", "merah", "hijau", "ungu"].index(tema)
-    )
-    if pilihan_tema != tema:
-        db["tema"] = pilihan_tema
-        simpan_data(db)
-        st.rerun()
-
-    st.sidebar.markdown("---")
-    if st.sidebar.button("📖 Cara Login & Registrasi"):
-        st.session_state.show_panduan = not st.session_state.show_panduan
-
-    if st.session_state.show_panduan:
-        st.sidebar.markdown(
-            f"""
-            <div style="background-color: rgba(255, 255, 255, 0.1); color: #ffffff; padding: 12px; border-radius: 6px; margin-top: 10px; font-size: 13px; line-height: 1.5;">
-                <strong>Panduan Singkat:</strong><br><br>
-                1. <strong>Registrasi</strong>: Masukkan ID Pengguna unik Anda, minta kode verifikasi, lalu aktifkan akun.<br><br>
-                2. <strong>Login</strong>: Gunakan username & password baru Anda untuk membaca koleksi novel.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-# ==================== KONTROL HALAMAN UTAMA / NAVIGASI DINAMIS ====================
+# ==================== KONTROL ALUR APLIKASI ====================
 if st.session_state.is_admin:
-    # 1. Tampilan Admin Dashboard Khusus
+    # Tampilan Khusus Dashboard Admin
     st.markdown(
         """
         <div style="background: linear-gradient(135deg, #1e293b, #0f172a); padding: 25px; border-radius: 10px; color: white; margin-bottom: 25px; border-left: 6px solid #3b82f6;">
@@ -422,13 +322,13 @@ if st.session_state.is_admin:
                     st.rerun()
 
 else:
-    # Pengalihan halaman berdasarkan state menu user
-    if st.session_state.menu == "Masuk (Login)":
+    # ==================== HALAMAN UTAMA (LANDING PAGE) ====================
+    if st.session_state.menu == "Utama":
         st.markdown(
             """
-            <div style="text-align: center; padding: 30px 0 10px 0;">
-                <h1 style="font-weight: 800; font-size: 42px; margin-bottom: 5px;">NovelNest</h1>
-                <p style="font-size: 16px; font-style: italic; color: #94a3b8; font-weight: 500;">
+            <div style="text-align: center; padding: 50px 20px 20px 20px;">
+                <h1 style="font-weight: 800; font-size: 48px; margin-bottom: 10px;">NovelNest</h1>
+                <p style="font-size: 18px; font-style: italic; color: #94a3b8; font-weight: 500; max-width: 600px; margin: 0 auto 30px auto;">
                     Rumah digital bagi para pembaca untuk menikmati berbagai cerita menarik, berdiskusi, dan menjelajahi bab-bab seru.
                 </p>
             </div>
@@ -436,7 +336,48 @@ else:
             unsafe_allow_html=True
         )
 
-        st.markdown("---")
+        col_space1, col_center, col_space2 = st.columns([1, 2, 1])
+        with col_center:
+            # 3. Tombol Masuk
+            if st.button("🔑 Masuk"):
+                st.session_state.menu = "Login"
+                st.rerun()
+            
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            
+            # 4. Tombol Registrasi
+            if st.button("📝 Registrasi"):
+                st.session_state.menu = "Registrasi"
+                st.rerun()
+            
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            
+            # 5. Tombol Setting
+            if st.button("⚙️ Setting"):
+                st.session_state.show_theme_modal = not st.session_state.show_theme_modal
+                st.rerun()
+
+        if st.session_state.show_theme_modal:
+            st.markdown("---")
+            st.subheader("Pengaturan Tema Aplikasi")
+            pilihan_tema = st.selectbox(
+                "Pilih Tema Warna",
+                ["biru", "merah", "hijau", "ungu"],
+                index=["biru", "merah", "hijau", "ungu"].index(tema)
+            )
+            if pilihan_tema != tema:
+                db["tema"] = pilihan_tema
+                simpan_data(db)
+                st.rerun()
+
+    # ==================== HALAMAN LOGIN ====================
+    elif st.session_state.menu == "Login":
+        if st.button("← Kembali ke Beranda Utama"):
+            st.session_state.menu = "Utama"
+            st.session_state.admin_step = 0
+            st.rerun()
+
+        st.title("Masuk ke Akun NovelNest")
 
         if st.session_state.logged_in_user:
             st.info(f"Anda sudah masuk sebagai **{st.session_state.logged_in_user}**.")
@@ -471,40 +412,30 @@ else:
                             st.session_state.admin_step = 0
 
             else:
-                col_login_box, col_reg_box = st.columns(2)
-                
-                with col_login_box:
-                    st.subheader("Masuk ke Akun Anda")
-                    with st.form("form_user_login"):
-                        u_name = st.text_input("Username")
-                        u_pass = st.text_input("Password", type="password")
-                        
-                        submitted_login = st.form_submit_button("Masuk")
-                        if submitted_login:
-                            if u_name == "admin" and u_pass == "admin":
-                                st.session_state.admin_step = 1
+                with st.form("form_user_login"):
+                    u_name = st.text_input("Username")
+                    u_pass = st.text_input("Password", type="password")
+                    
+                    submitted_login = st.form_submit_button("Masuk")
+                    if submitted_login:
+                        if u_name == "admin" and u_pass == "admin":
+                            st.session_state.admin_step = 1
+                            st.rerun()
+                        else:
+                            registered = db["users_terdaftar"]
+                            if u_name in registered and registered[u_name] == u_pass:
+                                st.session_state.logged_in_user = u_name
+                                db.setdefault("active_sessions", {})[current_device_token] = u_name
+                                simpan_data(db)
+                                st.success(f"Berhasil masuk sebagai {u_name}.")
                                 st.rerun()
                             else:
-                                registered = db["users_terdaftar"]
-                                if u_name in registered and registered[u_name] == u_pass:
-                                    st.session_state.logged_in_user = u_name
-                                    db.setdefault("active_sessions", {})[current_device_token] = u_name
-                                    simpan_data(db)
-                                    st.success(f"Berhasil masuk sebagai {u_name}.")
-                                    st.rerun()
-                                else:
-                                    st.error("Username atau Password salah.")
+                                st.error("Username atau Password salah.")
 
-                with col_reg_box:
-                    st.subheader("Belum Punya Akun?")
-                    st.write("Silakan daftarkan ID Pengguna Anda untuk mendapatkan akses membaca melalui menu registrasi.")
-                    if st.button("Pindah ke Halaman Registrasi Akun", use_container_width=True):
-                        st.session_state.menu = "Registrasi Akun"
-                        st.rerun()
-
-    elif st.session_state.menu == "Registrasi Akun":
-        if st.button("← Kembali ke Halaman Login"):
-            st.session_state.menu = "Masuk (Login)"
+    # ==================== HALAMAN REGISTRASI ====================
+    elif st.session_state.menu == "Registrasi":
+        if st.button("← Kembali ke Beranda Utama"):
+            st.session_state.menu = "Utama"
             st.rerun()
 
         st.title("Registrasi Akun NovelNest")
@@ -548,7 +479,7 @@ else:
                 st.markdown(
                     f"""
                     <div style="background-color: {box_bg}; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
-                        <span style="font-size: 12px; font-weight: bold;">Total Antrean Pending:</span><br>
+                        <span style="font-size: 12px; font-weight: bold;">Nomor Antrean Pengguna:</span><br>
                         <span style="font-size: 20px; font-weight: bold;">{len(db['antrian_registrasi'])}</span>
                     </div>
                     """,
@@ -557,8 +488,8 @@ else:
                 st.markdown(
                     f"""
                     <div style="background-color: {box_bg}; padding: 12px; border-radius: 6px;">
-                        <span style="font-size: 12px; font-weight: bold;">Status Kode Admin:</span><br>
-                        <span style="font-size: 14px;">Cek melalui tombol Muat Ulang jika admin telah mengirimkannya.</span>
+                        <span style="font-size: 12px; font-weight: bold;">Kode Verifikasi Admin:</span><br>
+                        <span style="font-size: 14px;">Klik Muat Ulang untuk melihat kode jika sudah dikirimkan admin.</span>
                     </div>
                     """,
                     unsafe_allow_html=True
@@ -612,15 +543,20 @@ else:
                             
                             st.session_state.aktivasi_step = "input_id"
                             st.session_state.temp_validated_id = ""
-                            st.session_state.menu = "Masuk (Login)"
+                            st.session_state.menu = "Login"
                             st.success("Akun berhasil diaktifkan! Dialihkan ke halaman Login...")
                             st.rerun()
 
+    # ==================== KOLEKSI NOVEL ====================
     elif st.session_state.menu == "Koleksi Novel":
+        if st.button("← Keluar ke Beranda Utama"):
+            st.session_state.menu = "Utama"
+            st.rerun()
+
         if not st.session_state.logged_in_user:
-            st.warning("Anda harus masuk (login) terlebih dahulu melalui menu 'Masuk (Login)' untuk membaca koleksi novel.")
+            st.warning("Anda harus masuk (login) terlebih dahulu melalui menu 'Masuk' untuk membaca koleksi novel.")
             if st.button("Pindah ke Halaman Login"):
-                st.session_state.menu = "Masuk (Login)"
+                st.session_state.menu = "Login"
                 st.rerun()
         else:
             st.title("NovelNest Library")
@@ -710,7 +646,7 @@ else:
                                 st.markdown(
                                     f"""
                                     <div style="background-color: rgba(0,0,0,0.05); padding: 8px 10px; border-radius: 6px; margin-left: 30px; margin-bottom: 6px; border-left: 3px solid {accent_btn};">
-                                        <span style="font-size: 13px;">↳ <strong>{bal['user']}</strong>: {bal['pesans']}</span>
+                                        <span style="font-size: 13px;">↳ <strong>{bal['user']}</strong>: {bal['pesan']}</span>
                                     </div>
                                     """,
                                     unsafe_allow_html=True
