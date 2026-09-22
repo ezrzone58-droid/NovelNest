@@ -141,13 +141,32 @@ st.markdown(
     div.stButton > button:hover {{
         opacity: 0.9;
     }}
-    input, textarea {{
-        background-color: {box_bg} !important;
-        color: {fg_teks} !important;
+    /* Kontras Tinggi untuk Kolom Input & Textarea */
+    input, textarea, div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {{
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
         border-radius: 6px !important;
-        border: 1px solid rgba(0,0,0,0.2) !important;
+        border: 2px solid #2563eb !important;
+        font-weight: 600 !important;
     }}
-    p, span, label {{
+    /* Placeholder agar tetap terbaca kontras */
+    input::placeholder, textarea::placeholder {{
+        color: #4b5563 !important;
+        opacity: 1 !important;
+    }}
+    /* Kontras untuk Selectbox / Dropdown */
+    div[data-baseweb="select"] > div {{
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-radius: 6px !important;
+        border: 2px solid #2563eb !important;
+        font-weight: 600 !important;
+    }}
+    div[data-baseweb="select"] span {{
+        color: #000000 !important;
+    }}
+    p, span, label, h1, h2, h3, h4 {{
         color: {fg_teks} !important;
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }}
@@ -158,7 +177,6 @@ st.markdown(
 
 # ==================== KONTROL ALUR APLIKASI ====================
 if st.session_state.is_admin:
-    # Tampilan Khusus Dashboard Admin
     st.markdown(
         """
         <div style="background: linear-gradient(135deg, #1e293b, #0f172a); padding: 25px; border-radius: 10px; color: white; margin-bottom: 25px; border-left: 6px solid #3b82f6;">
